@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-09-29
+
 ### Added
 - Initial public GitHub release at `fishke22/SPORTS_EDGE_AI` after post-commit publication audit passed with zero blockers and zero warnings.
 - Portable project-root resolver and project paths.
