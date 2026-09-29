@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Added
+- Initial public GitHub release at `fishke22/SPORTS_EDGE_AI` after post-commit publication audit passed with zero blockers and zero warnings.
 - Portable project-root resolver and project paths.
 - Pydantic canonical contracts for event/market/odds/prediction/model/backtest/paper/settlement/risk/data quality.
 - DuckDB migration runner and initial Foundation schema.

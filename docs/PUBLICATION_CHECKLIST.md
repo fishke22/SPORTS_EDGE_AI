@@ -37,6 +37,6 @@ Dependency license metadata 的 UNKNOWN / copyleft detection 目前列 WARNING�
 - 確認 repository 名稱與 public visibility。
 - 使用者明確確認第一次 public push。
 
-目前狀態：automated publication audit 已通過（0 blockers / 0 warnings，ready_for_user_review=true，
-Git history 目前 0 commits）。尚未授權 public push；第一次 commit 後、public push 前必須再重跑一次
-history/audit。實際 audit JSON 記錄於 reports/audits/publication_audit.json（runtime report，不提交 Git）。
+目前狀態：首次 commit 後已重新執行 automated publication audit，Git history scan 為 0 blockers / 0 warnings；
+使用者已明確授權首次公開發布，`fishke22/SPORTS_EDGE_AI` 已以 Public / `main` 完成首次 push。
+實際 audit JSON 可寫入 reports/audits/publication_audit.json（runtime report，不提交 Git）。

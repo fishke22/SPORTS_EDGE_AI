@@ -25,10 +25,10 @@ provider production_allowed=false，模型不得宣稱 validated edge。
 - scripts/verify_portability.ps1：passed。
 - Phase 10 live smoke：research-readiness=NOT_READY，0 usable / 180 first evaluation / 360 validation sample capacity；model_registry/backtest_runs 維持 0。
 - API/MCP contract tests確認 read-only structured interface。
-- publication audit（Phase 11 staged tree）：0 blockers / 0 warnings，ready_for_user_review=true；163 tracked files。
+- publication audit：首次 commit 後重新掃描 Git history，0 blockers / 0 warnings；163 tracked files。
 - `sports-edge doctor`：DEGRADED / ready_for_research=true；credential 已配置，僅 provider production gate 為 WARN。
-- deterministic release bundle：builder / manifest / hash / raw-exclusion smoke 已通過；runtime ZIP 不進 Git，依 staged source 可重建。
-- public push：未執行。
+- deterministic release bundle：builder / manifest / hash / raw-exclusion smoke 已通過；runtime ZIP 不進 Git，依 tracked source 可重建。
+- Public GitHub：`https://github.com/fishke22/SPORTS_EDGE_AI`；visibility=public，default branch=`main`。
 
 ## Phase 0 — Portable Foundation
 
@@ -166,6 +166,6 @@ CLI 提供 ops-monitor / ops-status；FastAPI/MCP/Web 只讀 latest persisted op
 1. Historical paid entitlement：live probe 已回 HTTP 401；目前帳號不可使用 historical endpoints。
 2. Model validation：current odds 已 live validated，但 usable completed-result samples 目前為 0；180 才能首個 research fold、360 才具備 200 OOS sample capacity，之後仍須通過完整 validation metrics gate 才可人工進入 model lifecycle。
 3. Live provider mapping：30 個正式 NBA franchise 已 review approved，2 個非正式 provider participants rejected；目前 mapping completion=1.0。
-4. Git 首次 commit：repository-local identity 已設定為 `fishke22 <fishke22@gmail.com>`；尚未建立首次 commit。
-5. Public GitHub：必須在 audit 後由使用者確認 repo name、visibility、tracked files 與 license。
+4. Git：repository-local identity 已設定為 `fishke22 <fishke22@gmail.com>`；首次 commit 已完成。
+5. Public GitHub：`fishke22/SPORTS_EDGE_AI` 已公開；後續變更仍需通過 publication audit 與 CI。
 6. 台灣運彩 adapter / 真實 payout-tax rule：需合法官方資料與版本化規則來源後另行施工；目前不猜值。
