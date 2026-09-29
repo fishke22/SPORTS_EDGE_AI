@@ -14,10 +14,10 @@ provider production_allowed=false，模型不得宣稱 validated edge。
 
 ## 最終驗證
 
-- pytest：9.1.1，103 passed（已修補 GitHub Dependabot 對 pytest < 9.0.3 的 medium advisory）。
+- pytest：9.1.1，105 passed（含 repository URL offline smoke；GitHub Dependabot 對 pytest < 9.0.3 的 medium advisory 已修補）。
 - Phase 10 persisted-readiness regression：snapshot 存在時 shared API/MCP/Web read facade 不重建 training dataset；無 snapshot 時 fallback live assessment；snapshot sample/status/remaining/blockers 與 ledger 一致。
 - Ruff：all checks passed。
-- mypy strict：60 source files，0 issues。
+- mypy strict：61 source files，0 issues。
 - frontend Vitest：2 passed。
 - TypeScript / Vite production build：passed。
 - npm audit：0 vulnerabilities。
@@ -25,7 +25,7 @@ provider production_allowed=false，模型不得宣稱 validated edge。
 - scripts/verify_portability.ps1：passed。
 - Phase 10 live smoke：research-readiness=NOT_READY，0 usable / 180 first evaluation / 360 validation sample capacity；model_registry/backtest_runs 維持 0。
 - API/MCP contract tests確認 read-only structured interface。
-- publication audit：首次 commit 後重新掃描 Git history，0 blockers / 0 warnings；163 tracked files。
+- publication audit：首次 commit 後重新掃描 Git history，0 blockers / 0 warnings；166 tracked files。
 - `sports-edge doctor`：DEGRADED / ready_for_research=true；credential 已配置，僅 provider production gate 為 WARN。
 - deterministic release bundle：builder / manifest / hash / raw-exclusion smoke 已通過；runtime ZIP 不進 Git，依 tracked source 可重建。
 - Public GitHub：`https://github.com/fishke22/SPORTS_EDGE_AI`；visibility=public，default branch=`main`。
@@ -68,7 +68,7 @@ Synthetic evidence 永遠 fail closed；HISTORICAL_POINT_IN_TIME 仍需真實可
 
 狀態：完成。
 
-- CLI：health/init-db、synthetic/provider ingestion、mapping review、as-of/baseline/analysis、local NBA research、research readiness/cycle、operational monitor/status、prediction、paper workflow、provider usage、forward collect/status、backup/restore、doctor、build-release。
+- CLI：health/repo-smoke/init-db、synthetic/provider ingestion、mapping review、as-of/baseline/analysis、local NBA research、research readiness/cycle、operational monitor/status、prediction、paper workflow、provider usage、forward collect/status、backup/restore、doctor、build-release。
 - FastAPI：health、odds、baseline、analysis、model/backtest、entity mapping reads、provider usage、forward collection status、NBA research readiness、operational status、event result、paper portfolio。
 - MCP：15 個 read-only/idempotent structured-output tools；無 ingestion/mutation/betting/model promotion。
 - Web：market analysis + provider quota + mapping review + forward collection freshness + NBA research readiness + operational health + paper portfolio read dashboard；不在 frontend 重算 domain logic。
@@ -122,7 +122,7 @@ Publication audit 已實作 secret/runtime/raw/large-file/path/governance/depend
 
 新增跨 Windows/Linux、Python 3.11/3.14 的 GitHub Actions quality gate；frontend 使用 Node 24。
 所有 external GitHub Actions 均 pin 到完整 40-character commit SHA，publication audit 會阻擋 floating
-tag/branch。CI 同時執行 migration smoke、Ruff、mypy、pytest、Windows portability、frontend
+tag/branch。CI 同時執行 repository URL offline smoke、migration smoke、Ruff、mypy、pytest、Windows portability、frontend
 test/build/audit、publication audit 與 release bundle smoke。
 
 `sports-edge doctor` 離線檢查 root/lockfiles、schema、frontend build、credential 與 provider production
@@ -161,6 +161,14 @@ Migration 0009 新增 operational_monitor_snapshots。operational-monitor-v1 監
 
 CLI 提供 ops-monitor / ops-status；FastAPI/MCP/Web 只讀 latest persisted operational snapshot。Scheduler runner 現為 collection -> research-cycle -> ops-monitor，monitor 一定在最後嘗試執行且不覆蓋前一階段 failure exit code。實機 SCHEDULED smoke 為 severity=OK / 0 alerts / odds-result-sample delta=0，Task Scheduler Last Result=0，quota 未增加。
 
+## Phase 12 — Repository URL / Cloud-Ready Execution Contract
+
+狀態：完成 offline repo execution contract；未部署付費/持久 cloud runtime。
+
+新增 `sports-edge repo-smoke`。它只讀 tracked SQL migrations 與 synthetic fixtures，在 OS 暫存目錄建立獨立 PROJECT_ROOT，依序 ingest 08:00Z / 09:00Z snapshots，並以 08:30Z decision_as_of 走正式 market baseline + Market Analysis Service。Smoke 會驗證 later snapshot 未進入 as-of view，且固定 model_validated=false；即使 HOME synthetic probability 形成正 EV，仍只能為 NO_VALIDATED_EDGE，不得產生 EDGE。執行後暫存 state 自動刪除，不讀 API key、不呼叫 provider、不碰現有 operational DuckDB。
+
+GitHub Actions Python matrix 新增 repo-smoke，讓 public repository 每次 CI 都證明「clone + Python runtime 可重建並執行離線 shared-domain analysis」。`docs/CLOUD_RUNTIME.md` 明確區分：repo URL-only 可做離線 synthetic/reproducibility smoke；真實 live/continuous analysis 仍需要遠端 compute、durable storage、secret injection、scheduler 與單一 writer/concurrency 策略。GitHub Actions runner/artifact 不作為正式長期 point-in-time state authority，避免為了無本機開機而犧牲 provenance、atomicity 或資料品質。
+
 ## 外部 Gate / 非程式缺口
 
 1. Historical paid entitlement：live probe 已回 HTTP 401；目前帳號不可使用 historical endpoints。
@@ -168,4 +176,5 @@ CLI 提供 ops-monitor / ops-status；FastAPI/MCP/Web 只讀 latest persisted op
 3. Live provider mapping：30 個正式 NBA franchise 已 review approved，2 個非正式 provider participants rejected；目前 mapping completion=1.0。
 4. Git：repository-local identity 已設定為 `fishke22 <fishke22@gmail.com>`；首次 commit 已完成。
 5. Public GitHub：`fishke22/SPORTS_EDGE_AI` 已公開；後續變更仍需通過 publication audit 與 CI。
-6. 台灣運彩 adapter / 真實 payout-tax rule：需合法官方資料與版本化規則來源後另行施工；目前不猜值。
+6. Cloud live runtime：目前沒有選定/付費部署遠端 persistent VM/container + durable storage；repo URL-only 已可離線 smoke，但無法憑 public Git 重建未提交的真實 point-in-time history。沒有 durable storage/secret/scheduler contract 前不使用 GitHub Actions artifact workaround 取代正式 operational state。
+7. 台灣運彩 adapter / 真實 payout-tax rule：需合法官方資料與版本化規則來源後另行施工；目前不猜值。

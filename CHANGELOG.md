@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Added
+- Added `sports-edge repo-smoke`, an offline/credential-free ephemeral repository smoke that proves migrations, point-in-time as-of isolation, shared market analysis, and fail-closed `NO_VALIDATED_EDGE` behavior from a public checkout.
+- Added `docs/CLOUD_RUNTIME.md` defining the repo URL-only execution contract and the durable compute/storage/secret requirements for true computer-independent live collection.
+- GitHub Actions Python matrix now executes the repository smoke on Windows/Linux and Python 3.11/3.14; Actions remains CI/ephemeral and is not promoted to operational state authority.
+
 ## [0.1.1] - 2026-09-29
 
 ### Security

@@ -36,6 +36,8 @@ jobs:
           enable-cache: false
       - name: Sync
         run: uv sync --frozen --extra dev
+      - name: Repository URL offline smoke
+        run: uv run sports-edge repo-smoke
       - name: Migration smoke
         run: uv run sports-edge init-db
       - name: Ruff

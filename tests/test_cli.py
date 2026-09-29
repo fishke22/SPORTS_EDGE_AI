@@ -27,6 +27,25 @@ def _portable_root(tmp_path: Path) -> Path:
     return root
 
 
+def test_repo_smoke_runs_without_credentials_or_persistent_state(monkeypatch) -> None:
+    monkeypatch.delenv("SPORTS_EDGE_THE_ODDS_API_KEY", raising=False)
+
+    result = RUNNER.invoke(app, ["repo-smoke"])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.output)
+    assert payload["status"] == "PASS"
+    assert payload["mode"] == "OFFLINE_SYNTHETIC_EPHEMERAL"
+    assert payload["schema_version"] == "0009"
+    assert payload["network_required"] is False
+    assert payload["credentials_required"] is False
+    assert payload["persistent_state_required"] is False
+    assert payload["validated_edge_claimed"] is False
+    assert "EDGE" not in payload["recommendations"]
+    assert "NO_VALIDATED_EDGE" in payload["recommendations"]
+    assert payload["baseline_odds"] == {"AWAY": 2.1, "HOME": 1.8}
+
+
 def test_free_provider_cli_requires_secret_credential(tmp_path: Path, monkeypatch) -> None:
     root = _portable_root(tmp_path)
     monkeypatch.setenv("SPORTS_EDGE_ROOT", str(root))

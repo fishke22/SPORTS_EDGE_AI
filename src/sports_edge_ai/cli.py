@@ -32,6 +32,7 @@ from sports_edge_ai.application.operational_monitor import (
 )
 from sports_edge_ai.application.paper_trading import open_paper_trade, settle_open_paper_trades
 from sports_edge_ai.application.prediction_service import generate_nba_prediction_records
+from sports_edge_ai.application.repository_smoke import run_repository_smoke
 from sports_edge_ai.application.research_readiness import (
     get_nba_research_readiness_status,
     run_nba_research_cycle,
@@ -121,6 +122,32 @@ def health() -> None:
         "database_relative": str(Path("state") / paths.database.name),
     }
     typer.echo(json.dumps(payload, ensure_ascii=False))
+
+
+@app.command("repo-smoke")
+def repository_smoke() -> None:
+    result = run_repository_smoke()
+    typer.echo(
+        json.dumps(
+            {
+                "status": result.status,
+                "mode": result.mode,
+                "schema_version": result.schema_version,
+                "event_id": result.event_id,
+                "decision_as_of": result.decision_as_of.isoformat(),
+                "max_input_observed_at": result.max_input_observed_at.isoformat(),
+                "baseline_odds": dict(result.baseline_odds),
+                "recommendations": list(result.recommendations),
+                "risk_blockers": list(result.risk_blockers),
+                "network_required": result.network_required,
+                "credentials_required": result.credentials_required,
+                "persistent_state_required": result.persistent_state_required,
+                "validated_edge_claimed": result.validated_edge_claimed,
+                "limitations": list(result.limitations),
+            },
+            ensure_ascii=False,
+        )
+    )
 
 
 @app.command("init-db")

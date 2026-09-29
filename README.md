@@ -8,6 +8,19 @@ SPORTS_EDGE_AI 是一套 portable-first 的運動市場量化研究平台。核�
 
 **核心 portable vertical slice 已完成到 research/paper-only operational level；真實 provider 與模型 production gate 仍維持 fail-closed。**目前已具備 synthetic + The Odds API free live connector、人工 entity mapping review、immutable Bronze / canonical Silver / Gold baseline、forward point-in-time collector/run ledger、research readiness/automatic evaluation cycle、operational monitoring snapshot、local NBA feature/training dataset、walk-forward/calibration/validation gate、prediction provenance、paper-only settlement、FastAPI/Web/MCP read interfaces、portable backup/restore、system doctor、deterministic release bundle、cross-platform CI 與 publication audit。Free endpoints 已完成 live validation；historical paid entitlement probe 為 HTTP 401，因此 `production_allowed=false`。沒有真實 OOS/calibration 證據前，模型不得宣稱 validated edge。
 
+## 只給 Repository URL 的 AI / Cloud Smoke
+
+只要 AI 本身具備可執行程式的環境（Git、Python 3.11+、uv 與 GitHub 網路存取），公開 repo 可直接 clone 後跑不含 credential、完全離線的 shared-domain smoke：
+
+~~~bash
+git clone https://github.com/fishke22/SPORTS_EDGE_AI.git
+cd SPORTS_EDGE_AI
+uv sync --frozen
+uv run sports-edge repo-smoke
+~~~
+
+這個 smoke 使用隔離暫存 PROJECT_ROOT、tracked synthetic fixtures 與正式 Market Analysis Service，驗證 migration、as-of future-leakage gate 與 NO_VALIDATED_EDGE fail-closed 行為；不會讀寫 clone 本身的 operational state。**Repo URL 本身不包含真實 point-in-time history、API key 或 validated model evidence**，因此真實 live/continuous analysis 仍需要遠端 persistent runtime + durable storage + secret injection。詳見 docs/CLOUD_RUNTIME.md。
+
 ## Portable-first
 
 程式不得依賴目前磁碟位置。根目錄解析順序：`SPORTS_EDGE_ROOT` → `.sports-edge-root` / repository
@@ -17,6 +30,7 @@ PROJECT_ROOT 為基準。
 ```powershell
 .\scripts\bootstrap.ps1
 uv run sports-edge health
+uv run sports-edge repo-smoke
 uv run sports-edge init-db
 uv run sports-edge doctor
 uv run sports-edge collection-status

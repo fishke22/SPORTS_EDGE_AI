@@ -308,3 +308,11 @@ promotion、不產生下注動作。
 PowerShell 的 `$ErrorActionPreference = "Stop"` 不會自動把所有 native executable 的非 0 exit code 轉成 terminating error；因此只依賴它可能讓 `uv` / `npm` 的失敗被後續成功命令覆蓋，造成 bootstrap 假綠。
 
 `scripts/bootstrap.ps1` 對 `uv sync`、migration、Ruff、mypy、pytest、`npm ci`、Vitest、Vite build 與 doctor 的每個 native command 都必須立即檢查 `$LASTEXITCODE`，任一非 0 即停止。`.venv` 屬可重建 runtime；若因中斷安裝或殘留 project process 損壞，只能清除該 PROJECT_ROOT 的 `.venv` 並依 lockfile 重建，不得藉此刪除 state、data、models、reports 或 credentials。
+
+## ADR-0043 — Repo URL-only 只保證 offline reproducibility；live cloud 必須有 durable state
+
+日期：2026-09-29
+
+Public GitHub URL 可作為 source distribution contract，但不可作為真實 point-in-time data store。新增 `sports-edge repo-smoke`，在 ephemeral PROJECT_ROOT 以 tracked migrations + synthetic fixtures 驗證 migration、as-of future-leakage hard gate 與 shared Market Analysis Service；它不讀 secret、不送 network request、不修改既有 operational state，且固定 model_validated=false，禁止產生 EDGE。
+
+若 AI 具備 Git/Python/uv 執行環境，repo URL 足以 clone 後執行此 smoke；若 AI 只有網頁閱讀能力，URL 本身不構成 execution runtime。真實 live/continuous collection 要在個人電腦關機時仍運作，必須另有 remote compute、durable storage、secret injection、scheduler 與 writer/concurrency contract。GitHub Actions 保持 CI/manual ephemeral role，不以 Actions artifact/cache 傳遞 DuckDB/raw history 來冒充正式 operational state，避免 provenance、atomicity、授權與故障恢復退化。
