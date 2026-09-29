@@ -14,7 +14,7 @@ provider production_allowed=false，模型不得宣稱 validated edge。
 
 ## 最終驗證
 
-- pytest：103 passed。
+- pytest：9.1.1，103 passed（已修補 GitHub Dependabot 對 pytest < 9.0.3 的 medium advisory）。
 - Phase 10 persisted-readiness regression：snapshot 存在時 shared API/MCP/Web read facade 不重建 training dataset；無 snapshot 時 fallback live assessment；snapshot sample/status/remaining/blockers 與 ledger 一致。
 - Ruff：all checks passed。
 - mypy strict：60 source files，0 issues。

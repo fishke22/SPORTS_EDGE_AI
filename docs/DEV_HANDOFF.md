@@ -34,7 +34,7 @@
 
 ## Validation
 
-- pytest：103 passed。
+- pytest：9.1.1，103 passed；GitHub Dependabot 對 pytest < 9.0.3 的 medium advisory 已在 v0.1.1 修補。
 - persisted-readiness regression：snapshot 存在時 read facade 不重建 training dataset；無 snapshot 時 fallback live assessment；snapshot sample/status/remaining/blockers 與 ledger 一致。
 - Ruff：passed。
 - mypy：60 source files / 0 issues。

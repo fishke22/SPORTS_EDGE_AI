@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-09-29
+
+### Security
+- Upgraded the development/test dependency to `pytest>=9.0.3,<10`; `uv.lock` resolves pytest 9.1.1, addressing the GitHub Dependabot medium-severity tmpdir handling advisory reported against pytest < 9.0.3.
+- Full Python regression remains green on pytest 9.1.1: 103 passed; Ruff and mypy also pass.
+
 ## [0.1.0] - 2026-09-29
 
 ### Added
