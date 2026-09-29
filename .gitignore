@@ -1,0 +1,60 @@
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+credentials/
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node / frontend
+node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts
+
+# Runtime/local state
+logs/*
+!logs/.gitkeep
+state/*.duckdb
+state/*.db
+state/*.sqlite
+*.duckdb.wal
+backups/*
+!backups/.gitkeep
+
+# Data (only synthetic/sample fixtures are tracked)
+data/bronze/*
+data/silver/*
+data/gold/*
+!data/**/.gitkeep
+!data/samples/**
+
+# Model/research artifacts
+models/*
+!models/.gitkeep
+reports/*
+!reports/.gitkeep
+mlruns/
+wandb/
+
+# Provider credentials / OS / IDE
+*.token
+*.cookie
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json

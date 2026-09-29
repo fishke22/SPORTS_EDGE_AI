@@ -1,0 +1,23 @@
+CREATE TABLE IF NOT EXISTS forward_collection_runs (
+    collection_run_id VARCHAR PRIMARY KEY,
+    provider_id VARCHAR NOT NULL,
+    trigger_kind VARCHAR NOT NULL,
+    started_at TIMESTAMPTZ NOT NULL,
+    finished_at TIMESTAMPTZ NOT NULL,
+    status VARCHAR NOT NULL,
+    current_due BOOLEAN NOT NULL,
+    scores_due BOOLEAN NOT NULL,
+    current_attempted BOOLEAN NOT NULL,
+    scores_attempted BOOLEAN NOT NULL,
+    events_count BIGINT NOT NULL,
+    odds_count BIGINT NOT NULL,
+    results_count BIGINT NOT NULL,
+    unresolved_count BIGINT NOT NULL,
+    data_quality_status VARCHAR,
+    mapping_rate DOUBLE,
+    requests_used_before BIGINT,
+    requests_used_after BIGINT,
+    credits_spent BIGINT,
+    requests_remaining_after BIGINT,
+    error_summary VARCHAR
+);

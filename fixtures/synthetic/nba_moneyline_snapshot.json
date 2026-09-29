@@ -1,0 +1,22 @@
+{
+  "schema_version": "synthetic-market-v1",
+  "event": {
+    "event_id": "SYNTH_NBA_001",
+    "sport": "NBA",
+    "league": "NBA",
+    "home_team_id": "SYNTH_HOME",
+    "away_team_id": "SYNTH_AWAY",
+    "scheduled_start": "2026-10-01T12:00:00Z",
+    "observed_at": "2026-10-01T08:00:00Z",
+    "ingested_at": "2026-10-01T08:00:01Z"
+  },
+  "market": {
+    "market_id": "SYNTH_NBA_001_ML",
+    "market_type": "MONEYLINE",
+    "period": "FULL_GAME"
+  },
+  "odds": {
+    "home": 1.80,
+    "away": 2.10
+  }
+}

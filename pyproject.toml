@@ -1,0 +1,58 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sports-edge-ai"
+version = "0.1.0"
+description = "Portable-first sports market quantitative research platform"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+authors = [{ name = "SPORTS_EDGE_AI contributors" }]
+dependencies = [
+  "duckdb>=1.4,<2",
+  "fastapi>=0.116,<1",
+  "mcp>=2,<3",
+  "pandera[polars]>=0.26,<1",
+  "polars>=1.34,<2",
+  "pydantic>=2.11,<3",
+  "pydantic-settings>=2.10,<3",
+  "pytz>=2025.2",
+  "tzdata>=2025.2",
+  "typer>=0.19,<1",
+  "uvicorn>=0.35,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "mypy>=1.18,<2",
+  "pytest>=8.4,<9",
+  "pytest-cov>=7,<8",
+  "ruff>=0.13,<1",
+]
+
+[project.scripts]
+sports-edge = "sports_edge_ai.cli:app"
+sports-edge-api = "sports_edge_ai.interfaces.api:main"
+sports-edge-mcp = "sports_edge_ai.interfaces.mcp_server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sports_edge_ai"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+packages = ["sports_edge_ai"]

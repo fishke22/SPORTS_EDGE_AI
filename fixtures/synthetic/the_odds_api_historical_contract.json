@@ -1,0 +1,33 @@
+{
+  "sports_edge_fixture": "synthetic_contract_only",
+  "timestamp": "2026-09-01T12:00:00Z",
+  "previous_timestamp": "2026-09-01T11:55:00Z",
+  "next_timestamp": "2026-09-01T12:05:00Z",
+  "data": [
+    {
+      "id": "fixture_event_001",
+      "sport_key": "basketball_nba",
+      "sport_title": "NBA",
+      "commence_time": "2026-09-02T00:00:00Z",
+      "home_team": "Example Home",
+      "away_team": "Example Away",
+      "bookmakers": [
+        {
+          "key": "fixturebook",
+          "title": "Fixture Book",
+          "last_update": "2026-09-01T11:59:30Z",
+          "markets": [
+            {
+              "key": "h2h",
+              "last_update": "2026-09-01T12:00:30Z",
+              "outcomes": [
+                {"name": "Example Home", "price": 1.8},
+                {"name": "Example Away", "price": 2.1}
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

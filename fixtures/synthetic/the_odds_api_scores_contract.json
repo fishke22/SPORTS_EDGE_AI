@@ -1,0 +1,16 @@
+[
+  {
+    "id": "free_fixture_event_001",
+    "sport_key": "basketball_nba",
+    "sport_title": "NBA",
+    "commence_time": "2026-09-29T00:00:00Z",
+    "completed": true,
+    "home_team": "Boston Celtics",
+    "away_team": "New York Knicks",
+    "scores": [
+      {"name": "Boston Celtics", "score": "112"},
+      {"name": "New York Knicks", "score": "104"}
+    ],
+    "last_update": "2026-09-29T02:40:00Z"
+  }
+]

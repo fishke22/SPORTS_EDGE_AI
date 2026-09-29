@@ -1,0 +1,27 @@
+[
+  {
+    "id": "free_fixture_event_001",
+    "sport_key": "basketball_nba",
+    "sport_title": "NBA",
+    "commence_time": "2026-09-29T00:00:00Z",
+    "home_team": "Boston Celtics",
+    "away_team": "New York Knicks",
+    "bookmakers": [
+      {
+        "key": "fixturebook",
+        "title": "Fixture Book",
+        "last_update": "2026-09-28T06:55:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-09-28T06:55:00Z",
+            "outcomes": [
+              {"name": "Boston Celtics", "price": 1.75},
+              {"name": "New York Knicks", "price": 2.15}
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
