@@ -300,3 +300,11 @@ state。真正的 stale heartbeat、failed/partial run、quota/budget 風險、c
 Scheduler 每次 collection/research chain 後寫 monitor snapshot；即使前一階段失敗，monitor 仍應嘗試執行並保留第一個
 failure exit code。CLI 是 monitor write surface，FastAPI/MCP/Web 只讀 latest snapshot。Monitor 不自動修復、不自動 model
 promotion、不產生下注動作。
+
+## ADR-0042 — Portable bootstrap 的 native command 必須 fail-fast
+
+日期：2026-09-29
+
+PowerShell 的 `$ErrorActionPreference = "Stop"` 不會自動把所有 native executable 的非 0 exit code 轉成 terminating error；因此只依賴它可能讓 `uv` / `npm` 的失敗被後續成功命令覆蓋，造成 bootstrap 假綠。
+
+`scripts/bootstrap.ps1` 對 `uv sync`、migration、Ruff、mypy、pytest、`npm ci`、Vitest、Vite build 與 doctor 的每個 native command 都必須立即檢查 `$LASTEXITCODE`，任一非 0 即停止。`.venv` 屬可重建 runtime；若因中斷安裝或殘留 project process 損壞，只能清除該 PROJECT_ROOT 的 `.venv` 並依 lockfile 重建，不得藉此刪除 state、data、models、reports 或 credentials。

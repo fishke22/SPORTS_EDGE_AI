@@ -42,7 +42,7 @@
 - TypeScript/Vite production build：passed。
 - npm audit：0 vulnerabilities。
 - portability：passed。
-- full bootstrap：passed；migration 0009 current。
+- full bootstrap：乾淨重建 `.venv` 後 passed；native `uv`/`npm` exit code 已改為 fail-fast，避免假綠；migration 0009 current。
 - Phase 10 live smoke：readiness 0/180/360、MANUAL/SCHEDULED cycle 均 NOT_READY；model_registry/backtest_runs 維持 0。
 - Phase 11 live smoke：latest operational snapshot=SCHEDULED / OK / 0 alerts；odds/result/sample delta=0；Task Scheduler Last Result=0。
 - publication audit：首次 commit 後重新掃描 Git history，0 blockers / 0 warnings；163 tracked files，public push gate 通過。

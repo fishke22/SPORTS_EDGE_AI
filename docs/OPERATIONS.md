@@ -1,6 +1,6 @@
 # Operations Runbook
 
-更新日期：2026-09-28
+更新日期：2026-09-29
 
 本文件描述 portable standalone profile 的可執行流程。所有路徑由 PROJECT_ROOT resolver 決定；
 不得假設專案位於固定磁碟或使用者目錄。
@@ -14,7 +14,9 @@ uv run sports-edge init-db
 ~~~
 
 Bootstrap 會同步 Python dependencies、migration、Ruff、mypy、pytest、frontend npm ci、
-Vitest 與 production build。任何一步失敗都視為施工/發布 gate 未通過。
+Vitest 與 production build。每個 `uv` / `npm` native command 都必須檢查 exit code；任何一步非 0 立即中止，不能因 PowerShell 繼續執行後續命令而產生假綠。
+
+若 `.venv` 因中斷安裝或被本專案殘留 Python/pytest process 鎖定而損壞，先只終止明確使用該 PROJECT_ROOT `.venv` 的殘留 process，再刪除 `.venv` 並重跑 bootstrap。不得因此終止其他服務或刪除 state、data、models、reports、`.env`。
 
 ## 2. The Odds API credential
 

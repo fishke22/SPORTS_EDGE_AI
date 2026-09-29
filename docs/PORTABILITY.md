@@ -13,6 +13,8 @@
 5. 執行 frontend Vitest
 6. 執行 TypeScript/Vite production build
 
+上述 native commands 任一 exit code 非 0，bootstrap 必須立即失敗。`.venv` 若損壞可直接刪除並由 lockfile 重建；它不是 portable artifact，也不得用刪除 state/data/model 來處理環境故障。
+
 `scripts/verify_portability.ps1` 會掃描 Python、PowerShell、SQL、tests 與 frontend source/config，拒絕硬編碼 Windows absolute path；之後執行 read-only CLI health。
 
 每次 release 應執行 bootstrap、portability scan，並在獨立位置做 copy/bootstrap/restore smoke test。Runtime DuckDB、private reports、raw licensed data、credentials 與 build cache 不得因搬移而混入公開 source。

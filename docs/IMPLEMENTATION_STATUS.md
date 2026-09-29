@@ -21,7 +21,7 @@ provider production_allowed=false，模型不得宣稱 validated edge。
 - frontend Vitest：2 passed。
 - TypeScript / Vite production build：passed。
 - npm audit：0 vulnerabilities。
-- scripts/bootstrap.ps1：passed；DuckDB current_version=0009。
+- scripts/bootstrap.ps1：以乾淨重建 `.venv` 驗證 passed；所有 native `uv`/`npm` steps 現在 fail-fast；DuckDB current_version=0009。
 - scripts/verify_portability.ps1：passed。
 - Phase 10 live smoke：research-readiness=NOT_READY，0 usable / 180 first evaluation / 360 validation sample capacity；model_registry/backtest_runs 維持 0。
 - API/MCP contract tests確認 read-only structured interface。

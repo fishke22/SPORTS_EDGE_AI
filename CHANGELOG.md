@@ -9,6 +9,9 @@
 - Normalized ANSI styling in the CLI `--force` safety-message regression so clean GitHub Actions runners verify the actual error text rather than terminal color encoding.
 - Full Python regression remains green on pytest 9.1.1: 103 passed; Ruff and mypy also pass.
 
+### Fixed
+- `scripts/bootstrap.ps1` now checks every native `uv`/`npm` command exit code and fails immediately, preventing a broken local environment from being reported as a successful bootstrap.
+
 ## [0.1.0] - 2026-09-29
 
 ### Added
