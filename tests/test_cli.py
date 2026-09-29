@@ -5,6 +5,7 @@ import shutil
 from datetime import UTC, datetime
 from pathlib import Path
 
+from click.utils import strip_ansi
 from typer.testing import CliRunner
 
 from sports_edge_ai.cli import app
@@ -213,4 +214,4 @@ def test_restore_cli_requires_force(tmp_path: Path, monkeypatch) -> None:
     result = RUNNER.invoke(app, ["restore-state", backup["relative_path"]])
 
     assert result.exit_code != 0
-    assert "rerun with --force" in result.output
+    assert "rerun with --force" in strip_ansi(result.output)
