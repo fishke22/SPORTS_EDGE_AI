@@ -44,6 +44,8 @@ jobs:
         run: uv run sports-edge build-operational-checkpoint
       - name: Zero-cost policy status
         run: uv run sports-edge zero-cost-status
+      - name: Zero-cost backend contract smoke
+        run: uv run sports-edge checkpoint-backend-smoke
       - name: Ruff
         run: uv run ruff check .
       - name: mypy

@@ -318,3 +318,17 @@ uv run sports-edge restore-operational-checkpoint <PRIVATE_CHECKPOINT_PATH>
 Restore 先驗 manifest/path/checksum/size/schema，再暫存解壓與拷貝；拷貝後 migration integrity check 失敗會回滾本次新增檔案。Secret 必須另外以 `.env` 或 process environment 注入，checkpoint 永遠不是 secret transport。
 
 零付費遠端模式的未來標準流程是：private durable checkpoint storage -> ephemeral free compute restore -> secret injection -> single-writer collection/research/monitor -> build/verify new checkpoint -> atomic publish。任一 quota/storage/locking step 不滿足即停止，不刪歷史、不降資料品質、不切付費。
+
+## 18. Zero-cost backend contract smoke
+
+驗證可替換 checkpoint storage contract：
+
+~~~powershell
+uv run sports-edge checkpoint-backend-smoke
+~~~
+
+目前 smoke 只使用 `local-filesystem-reference-v1`。它不是 remote backend；成功輸出仍必須是 `remote_live_eligible=false`，blockers 包含 `NO_REMOTE_ACCESS` 與 `REFERENCE_ONLY_BACKEND`。
+
+Reference adapter 用 content-addressed versioned objects + atomic current pointer。Publish 要求 caller 提供 `expected_generation`；generation 已變時 CAS fail closed，不覆蓋 current。`.publish.lock` 已存在時拒絕第二 writer。設定 free quota 後，若新 object 會超額，必須在 pointer/object mutation 前拒絕且保留既有版本。
+
+此 smoke 的目的，是讓未來任何免費 object-store adapter 使用同一組契約與 regression；它不代表本機檔案系統可以取代真正 remote durable storage。

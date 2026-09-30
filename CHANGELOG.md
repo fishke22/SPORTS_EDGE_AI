@@ -10,6 +10,8 @@
 - Added private full operational checkpoints for Bronze/Silver/Gold, DuckDB state, models, and reports with per-file hashes/sizes, configured-secret leakage detection, atomic archive publication, strict path validation, empty-target restore, migration integrity checks, and rollback on restore failure.
 - GitHub Actions now exercises operational-checkpoint creation and zero-cost policy status on the cross-platform Python matrix without promoting CI artifacts to durable state.
 - Pinned Linux CI jobs to `ubuntu-24.04` after GitHub announced the `ubuntu-latest` image migration to Ubuntu 26, avoiding unreviewed runner-image drift in the quality gate.
+- Added `zero-cost-checkpoint-backend-v1`, a provider-neutral checkpoint storage protocol/capability evaluator plus a local reference adapter with content-addressed versions, atomic pointer updates, compare-and-swap generation checks, exclusive writer locking, quota fail-closed behavior, verified export, and full restore round-trip smoke.
+- Added stale-generation, concurrent-writer, quota-preserves-history, capability-gate, round-trip, CLI, and CI regressions; the local reference adapter is explicitly never remote-live eligible.
 
 ## [0.1.1] - 2026-09-29
 

@@ -122,7 +122,21 @@ Restore 只接受空 operational target，先驗 archive paths / manifest / size
 
 在某個 backend 通過這些條件並完成 round-trip regression 前，`sports-edge zero-cost-status` 必須維持 `LIVE_REMOTE_BLOCKED`。
 
-## 6. 建議的演進順序
+## 6. Backend contract / reference adapter
+
+Phase 14 把免費 durable storage 的要求從文件變成可測試介面。`zero-cost-checkpoint-backend-v1` 定義 capabilities：private/durable、automatic billing、atomic publish、versioned objects、single-writer guard、quota fail-closed、secret separation、portable export、remote access 與 reference-only 標記。
+
+~~~powershell
+uv run sports-edge checkpoint-backend-smoke
+~~~
+
+目前唯一 implementation 是 `local-filesystem-reference-v1`。它只存在於本地測試/contract smoke，使用 content-addressed checkpoint objects、atomic current pointer、exclusive writer lock、expected-generation compare-and-swap、quota preflight 與 verified download。Smoke 會做完整 `checkpoint -> publish -> fetch -> verify -> restore` round-trip。
+
+Reference adapter 即使其他能力全部通過，因 `remote_access=false` 與 `reference_only=true`，assessment 仍固定 `remote_live_eligible=false`。因此它不能被誤用來解除 `LIVE_REMOTE_BLOCKED`。
+
+未來外部免費 backend adapter 必須實作相同 protocol 並通過至少以下 regression：stale generation 被拒絕且 current 不變、第二 writer 被拒絕、quota 不足在 mutation 前失敗且不刪舊 objects、下載檔 hash/size/checkpoint verify 通過、clean runtime restore 後 state 一致。只有 capabilities evaluator 沒有 blockers 且真實 round-trip 通過，才有資格進入下一層 remote scheduler integration。
+
+## 7. 建議的演進順序
 
 目前先維持：
 

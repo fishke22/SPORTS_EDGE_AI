@@ -14,18 +14,18 @@ provider production_allowed=false，模型不得宣稱 validated edge。
 
 ## 最終驗證
 
-- pytest：9.1.1，113 passed（含 repository URL offline smoke、zero-cost runtime policy 與 operational checkpoint regressions）。
+- pytest：9.1.1，121 passed（含 repository URL offline smoke、zero-cost runtime policy、operational checkpoint 與 backend contract regressions）。
 - Phase 10 persisted-readiness regression：snapshot 存在時 shared API/MCP/Web read facade 不重建 training dataset；無 snapshot 時 fallback live assessment；snapshot sample/status/remaining/blockers 與 ledger 一致。
 - Ruff：all checks passed。
-- mypy strict：63 source files，0 issues。
+- mypy strict：66 source files，0 issues。
 - frontend Vitest：2 passed。
 - TypeScript / Vite production build：passed。
 - npm audit：0 vulnerabilities。
-- scripts/bootstrap.ps1：Phase 13 最終工作樹 passed；所有 native `uv`/`npm` steps fail-fast；DuckDB current_version=0009；doctor 僅 provider production gate WARN。
+- scripts/bootstrap.ps1：Phase 14 最終工作樹 passed；121 Python tests、Ruff、mypy 66 source files、Frontend 2 tests/build/npm audit 全綠；DuckDB current_version=0009；doctor 僅 provider production gate WARN。
 - scripts/verify_portability.ps1：passed。
 - Phase 10 live smoke：research-readiness=NOT_READY，0 usable / 180 first evaluation / 360 validation sample capacity；model_registry/backtest_runs 維持 0。
 - API/MCP contract tests確認 read-only structured interface。
-- publication audit：首次 commit 後重新掃描 Git history，0 blockers / 0 warnings；170 tracked files。
+- publication audit：首次 commit 後重新掃描 Git history，0 blockers / 0 warnings；174 tracked files。
 - `sports-edge doctor`：DEGRADED / ready_for_research=true；credential 已配置，僅 provider production gate 為 WARN。
 - deterministic release bundle：builder / manifest / hash / raw-exclusion smoke 已通過；runtime ZIP 不進 Git，依 tracked source 可重建。
 - Public GitHub：`https://github.com/fishke22/SPORTS_EDGE_AI`；visibility=public，default branch=`main`。
@@ -68,7 +68,7 @@ Synthetic evidence 永遠 fail closed；HISTORICAL_POINT_IN_TIME 仍需真實可
 
 狀態：完成。
 
-- CLI：health/repo-smoke/init-db、synthetic/provider ingestion、mapping review、as-of/baseline/analysis、local NBA research、research readiness/cycle、operational monitor/status、prediction、paper workflow、provider usage、forward collect/status、backup/restore、doctor、build-release。
+- CLI：health/repo-smoke/checkpoint-backend-smoke/zero-cost-status/init-db、synthetic/provider ingestion、mapping review、as-of/baseline/analysis、local NBA research、research readiness/cycle、operational monitor/status、prediction、paper workflow、provider usage、forward collect/status、operational checkpoint、backup/restore、doctor、build-release。
 - FastAPI：health、odds、baseline、analysis、model/backtest、entity mapping reads、provider usage、forward collection status、NBA research readiness、operational status、event result、paper portfolio。
 - MCP：15 個 read-only/idempotent structured-output tools；無 ingestion/mutation/betting/model promotion。
 - Web：market analysis + provider quota + mapping review + forward collection freshness + NBA research readiness + operational health + paper portfolio read dashboard；不在 frontend 重算 domain logic。
@@ -179,6 +179,16 @@ GitHub Actions Python matrix 新增 repo-smoke，讓 public repository 每次 CI
 
 CLI 新增 `zero-cost-status`、`build-operational-checkpoint`、`verify-operational-checkpoint`、`restore-operational-checkpoint`。GitHub Actions cross-platform Python matrix 新增 checkpoint build 與 zero-cost status smoke，但 CI artifacts 仍不被升格為 durable state。Phase 13 final bootstrap：113 Python tests、Ruff、mypy 63 source files、Frontend 2 tests/build/audit 全綠。
 
+## Phase 14 — Zero-Cost Durable Backend Contract
+
+狀態：完成 provider-neutral backend contract、capability evaluator 與 local reference adapter；沒有啟用任何外部服務，remote live 仍 blocked。
+
+新增 `zero-cost-checkpoint-backend-v1`：backend 必須聲明 private/durable、automatic billing、atomic publish、versioned objects、single-writer guard、quota fail-closed、secret separation、portable export、remote access、reference-only 等 capabilities。Evaluator 只有在所有 zero-cost remote requirements 均通過時才回 `remote_live_eligible=true`。
+
+新增 `local-filesystem-reference-v1`，只作 executable specification。它使用 content-addressed objects、atomic current pointer、exclusive `.publish.lock`、expected-generation CAS、quota preflight 與 verified fetch。它固定 `remote_access=false` / `reference_only=true`，所以 contract smoke 成功仍會有 `NO_REMOTE_ACCESS`、`REFERENCE_ONLY_BACKEND` blockers，不能解除 `LIVE_REMOTE_BLOCKED`。
+
+Regression 已覆蓋 publish/fetch/verify/restore round-trip、stale generation 不覆蓋 current、第二 writer lock reject、quota 超限在 mutation 前 fail 且保留舊 objects、完整 capability evaluator、CLI smoke。GitHub Actions matrix 也新增 `checkpoint-backend-smoke`。Phase 14 full bootstrap：121 Python tests、Ruff、mypy 66 source files、Frontend 2 tests/build/npm audit 全綠。
+
 ## 外部 Gate / 非程式缺口
 
 1. Historical paid entitlement：live probe 已回 HTTP 401；目前帳號不可使用 historical endpoints。
@@ -186,5 +196,5 @@ CLI 新增 `zero-cost-status`、`build-operational-checkpoint`、`verify-operati
 3. Live provider mapping：30 個正式 NBA franchise 已 review approved，2 個非正式 provider participants rejected；目前 mapping completion=1.0。
 4. Git：repository-local identity 已設定為 `fishke22 <fishke22@gmail.com>`；首次 commit 已完成。
 5. Public GitHub：`fishke22/SPORTS_EDGE_AI` 已公開；後續變更仍需通過 publication audit 與 CI。
-6. Zero-cost cloud live runtime：使用者明確要求永不付費。完整 private operational checkpoint/state-transfer contract 已完成，但尚無通過驗證的免費 private durable backend，因此 remote live 正確狀態仍為 LIVE_REMOTE_BLOCKED。未來 backend 必須無 automatic billing、private durable、atomic/versioned publish、single-writer/CAS、secret separation、quota fail-closed 與可攜 export；未通過前不使用 GitHub Actions artifact workaround。
+6. Zero-cost cloud live runtime：使用者明確要求永不付費。Phase 14 已把 backend requirements 變成 executable protocol/capability gate，local reference adapter round-trip 已通過；但尚無任何真實外部免費 backend 通過 provider-specific round-trip，因此 remote live 正確狀態仍為 LIVE_REMOTE_BLOCKED。下一步只能評估候選免費服務，不能直接解除 gate。
 7. 台灣運彩 adapter / 真實 payout-tax rule：需合法官方資料與版本化規則來源後另行施工；目前不猜值。

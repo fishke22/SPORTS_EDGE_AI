@@ -33,6 +33,8 @@ uv run sports-edge verify-operational-checkpoint backups\operational-checkpoints
 
 Operational checkpoint 是未來跨機器/免費 backend 的 state-transfer contract：包含 `data/bronze`、`data/silver`、`data/gold`、`state`、`models`、`reports`，但**不包含 `.env`/API key**；archive manifest 固定 `public_export_allowed=false`。Restore 只允許空 runtime，避免 silent overwrite。真正「個人電腦關機仍持續 live collection」仍需另外找到符合 zero-cost policy 的 private durable backend；找不到時系統維持 blocked，不做品質較差的替代方案。詳見 `docs/CLOUD_RUNTIME.md`。
 
+Phase 14 已加入可替換的 checkpoint backend contract 與 local filesystem reference adapter。`checkpoint-backend-smoke` 會驗證 publish → fetch → verify → restore round-trip，以及未來 backend 需要的 CAS/single-writer/quota fail-closed 契約。**Local reference adapter 明確 `remote_live_eligible=false`，只供測試，不是正式雲端儲存。**
+
 ## Portable-first
 
 程式不得依賴目前磁碟位置。根目錄解析順序：`SPORTS_EDGE_ROOT` → `.sports-edge-root` / repository
@@ -44,6 +46,7 @@ PROJECT_ROOT 為基準。
 uv run sports-edge health
 uv run sports-edge repo-smoke
 uv run sports-edge zero-cost-status
+uv run sports-edge checkpoint-backend-smoke
 uv run sports-edge init-db
 uv run sports-edge doctor
 uv run sports-edge collection-status

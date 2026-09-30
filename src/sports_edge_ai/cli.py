@@ -6,6 +6,9 @@ from pathlib import Path
 
 import typer
 
+from sports_edge_ai.application.checkpoint_backend_smoke import (
+    run_checkpoint_backend_contract_smoke,
+)
 from sports_edge_ai.application.doctor import run_system_doctor
 from sports_edge_ai.application.entity_mapping import (
     approve_entity_mapping,
@@ -643,6 +646,25 @@ def paper_ready_events() -> None:
     typer.echo(
         json.dumps(
             {"event_ids": list(list_ready_paper_event_ids())},
+            ensure_ascii=False,
+        )
+    )
+
+
+@app.command("checkpoint-backend-smoke")
+def checkpoint_backend_smoke() -> None:
+    result = run_checkpoint_backend_contract_smoke()
+    typer.echo(
+        json.dumps(
+            {
+                "status": result.status,
+                "backend_id": result.backend_id,
+                "remote_live_eligible": result.remote_live_eligible,
+                "blockers": list(result.blockers),
+                "checkpoint_sha256": result.checkpoint_sha256,
+                "generation": result.generation,
+                "restored_marker": result.restored_marker,
+            },
             ensure_ascii=False,
         )
     )

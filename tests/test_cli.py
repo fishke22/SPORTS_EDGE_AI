@@ -46,6 +46,19 @@ def test_repo_smoke_runs_without_credentials_or_persistent_state(monkeypatch) ->
     assert payload["baseline_odds"] == {"AWAY": 2.1, "HOME": 1.8}
 
 
+def test_checkpoint_backend_smoke_cli_is_reference_only() -> None:
+    result = RUNNER.invoke(app, ["checkpoint-backend-smoke"])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.output)
+    assert payload["status"] == "PASS"
+    assert payload["backend_id"] == "local-filesystem-reference-v1"
+    assert payload["remote_live_eligible"] is False
+    assert "NO_REMOTE_ACCESS" in payload["blockers"]
+    assert "REFERENCE_ONLY_BACKEND" in payload["blockers"]
+    assert payload["generation"] == payload["checkpoint_sha256"]
+
+
 def test_zero_cost_status_and_operational_checkpoint_cli(
     tmp_path: Path,
     monkeypatch,

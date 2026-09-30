@@ -326,3 +326,13 @@ Public GitHub URL 可作為 source distribution contract，但不可作為真實
 跨機器 operational state contract 採 private checkpoint，而不是 Git history。Checkpoint roots 固定為 Bronze/Silver/Gold、state、models、reports；排除 `.env`、logs、backups。建立時先要求 DuckDB current schema 等於 latest tracked migration，再掃描 configured provider secret 不得出現在 operational files，對每個檔案保存 SHA-256/bytes，temporary archive 完成後才 atomic rename。Manifest 明確標示 `includes_raw_data=true`、`public_export_allowed=false`、`secret_transport=false`。
 
 Restore 只允許 empty runtime；archive path、manifest、hash、size 與 schema 全部先驗證。拷貝後再次執行 migration integrity check，若 checkout migration 與 restored DB 不一致或任何 post-copy check 失敗，必須刪除本次新增檔案。未來 free object-store adapter 必須實作 private durable storage、atomic/versioned publish、single-writer/CAS、quota fail-closed 與可攜 export；通過 round-trip regression 前不得解除 remote live blocker。
+
+## ADR-0045 — Durable backend 先以 protocol + reference adapter 驗證，不直接綁免費供應商
+
+日期：2026-09-30
+
+Phase 14 不先選外部服務，而先定義 `zero-cost-checkpoint-backend-v1`。Backend 必須公開 capability facts，application evaluator 依 private/durable/no-auto-billing/atomic-or-versioned/single-writer/quota-fail-closed/secret-separation/portable-export/remote-access 判斷 blockers。這避免 adapter 自稱免費即可解除 live gate。
+
+`local-filesystem-reference-v1` 只作 executable specification：content-addressed objects、atomic pointer、exclusive writer lock、expected-generation CAS、quota preflight、verified fetch。它固定 `remote_access=false`、`reference_only=true`，所以即使 contract smoke 完成也永遠不是 remote-live eligible。
+
+未來任何免費 provider adapter 必須先通過同一批 round-trip、stale-CAS、second-writer、quota-preserves-history tests，再以真實服務 capability/evidence 接受 evaluator。沒有 provider-specific round-trip evidence 前，`LIVE_REMOTE_BLOCKED` 不變。
