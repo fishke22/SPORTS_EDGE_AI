@@ -1,6 +1,6 @@
 # Cloud / AI Runtime Contract
 
-更新日期：2026-09-29
+更新日期：2026-09-30
 
 本文件定義「只把公開 GitHub repository URL 交給 AI」時，SPORTS_EDGE_AI 可以與不可以保證的範圍。
 原則是 **不為了雲端化而降低 point-in-time、持久性、secret 或模型驗證標準**。
@@ -82,7 +82,47 @@ GitHub Actions **不作為目前 portable profile 的正式長期資料收集/st
 
 因此「不上個人電腦」的正確下一步是 **遠端持久 runtime**，不是強迫 GitHub Actions 扮演資料庫。
 
-## 5. 建議的演進順序
+## 5. 永不付費政策與 operational checkpoint
+
+使用者已明確要求永久零付費，因此 runtime policy 固定：
+
+- `paid_services_allowed=false`。
+- `automatic_billing_allowed=false`。
+- 不綁定任何會自動升級/自動扣款的 fallback。
+- storage/compute quota 用完、服務暫停、免費方案消失或 secret/storage contract 不再符合時，remote live 必須停止並保留最後可信 checkpoint；不得刪除歷史資料來硬塞免費額度。
+- public Git 與 GitHub Actions artifact/cache 都不是 state authority。
+
+目前新增完整 operational checkpoint contract：
+
+~~~powershell
+uv run sports-edge zero-cost-status
+uv run sports-edge build-operational-checkpoint
+uv run sports-edge verify-operational-checkpoint backups\operational-checkpoints\<file>.zip
+~~~
+
+Checkpoint 包含 `data/bronze`、`data/silver`、`data/gold`、`state`、`models`、`reports`，先對 DuckDB 執行 `CHECKPOINT`，要求 schema 等於目前 tracked migration，並為每個檔案保存 SHA-256/bytes。Archive 自身使用 private manifest，`includes_raw_data=true`、`public_export_allowed=false`、`secret_transport=false`。
+
+建立前會讀取目前 configured provider secret，逐檔掃描 operational roots；如果 secret 出現在任何 runtime artifact，checkpoint 直接失敗。`.env`、logs、backups 不進 archive。Archive 先寫 temporary file 再 rename，避免中斷留下半成品。
+
+Restore 只接受空 operational target，先驗 archive paths / manifest / size / SHA-256，且 checkpoint schema 必須等於 checkout 最新 migration。拷貝後再次執行 migration integrity check；任何失敗都刪除本次已拷貝檔案，不留下半套 runtime。
+
+這個 checkpoint **不是 cloud backend**，只是安全 state-transfer contract。它使下一個免費 backend adapter 不需要重新定義 point-in-time state 格式，也讓未來 AI 可以用「repo URL + private checkpoint + separately injected secret」重建 live runtime，而不必把 raw/state 放進 public Git。
+
+### 免費 backend 的最低驗收條件
+
+任何候選免費 backend 在接入前必須同時證明：
+
+1. Private durable storage；未授權使用者不可讀。
+2. 不提供或不啟用 automatic billing；超額只能 fail/limit，不可扣款。
+3. 支援 versioned object 或等價的 atomic publish；舊可信 checkpoint 不可在新 upload 完成前被破壞。
+4. 有 single-writer / compare-and-swap / 等價 concurrency guard。
+5. Secret 由 runtime secret injection 提供，不寫 checkpoint。
+6. 免費額度/暫停/服務失效時 fail closed；不得自動刪除 point-in-time history。
+7. 能定期匯出/下載 checkpoint，避免單一免費服務成為唯一不可攜 state。
+
+在某個 backend 通過這些條件並完成 round-trip regression 前，`sports-edge zero-cost-status` 必須維持 `LIVE_REMOTE_BLOCKED`。
+
+## 6. 建議的演進順序
 
 目前先維持：
 
@@ -99,4 +139,4 @@ GitHub Actions **不作為目前 portable profile 的正式長期資料收集/st
 - API/MCP read surface。
 - backup/restore 與 health monitoring。
 
-在沒有選定遠端平台、持久儲存與費用方案前，不先加入會降低資料品質的 workaround。
+在沒有驗證通過的 zero-cost private durable backend 前，不先加入會降低資料品質的 workaround，也不因免費服務限制而調降 model/readiness gate。

@@ -21,6 +21,18 @@ uv run sports-edge repo-smoke
 
 這個 smoke 使用隔離暫存 PROJECT_ROOT、tracked synthetic fixtures 與正式 Market Analysis Service，驗證 migration、as-of future-leakage gate 與 NO_VALIDATED_EDGE fail-closed 行為；不會讀寫 clone 本身的 operational state。**Repo URL 本身不包含真實 point-in-time history、API key 或 validated model evidence**，因此真實 live/continuous analysis 仍需要遠端 persistent runtime + durable storage + secret injection。詳見 docs/CLOUD_RUNTIME.md。
 
+## 永不付費 Runtime Policy
+
+本專案目前採 hard fail-closed 的 zero-cost policy：`paid_services_allowed=false`、`automatic_billing_allowed=false`。沒有經驗證的**免費、私有、durable** state backend 時，`remote_live_collection_ready` 固定為 false；不得自動升級付費、不得把 public Git 或 GitHub Actions artifact 當 operational database，也不得為了免費額度刪除 point-in-time evidence。
+
+~~~powershell
+uv run sports-edge zero-cost-status
+uv run sports-edge build-operational-checkpoint
+uv run sports-edge verify-operational-checkpoint backups\operational-checkpoints\<file>.zip
+~~~
+
+Operational checkpoint 是未來跨機器/免費 backend 的 state-transfer contract：包含 `data/bronze`、`data/silver`、`data/gold`、`state`、`models`、`reports`，但**不包含 `.env`/API key**；archive manifest 固定 `public_export_allowed=false`。Restore 只允許空 runtime，避免 silent overwrite。真正「個人電腦關機仍持續 live collection」仍需另外找到符合 zero-cost policy 的 private durable backend；找不到時系統維持 blocked，不做品質較差的替代方案。詳見 `docs/CLOUD_RUNTIME.md`。
+
 ## Portable-first
 
 程式不得依賴目前磁碟位置。根目錄解析順序：`SPORTS_EDGE_ROOT` → `.sports-edge-root` / repository
@@ -31,6 +43,7 @@ PROJECT_ROOT 為基準。
 .\scripts\bootstrap.ps1
 uv run sports-edge health
 uv run sports-edge repo-smoke
+uv run sports-edge zero-cost-status
 uv run sports-edge init-db
 uv run sports-edge doctor
 uv run sports-edge collection-status

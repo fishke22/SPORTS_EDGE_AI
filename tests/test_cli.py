@@ -46,6 +46,58 @@ def test_repo_smoke_runs_without_credentials_or_persistent_state(monkeypatch) ->
     assert payload["baseline_odds"] == {"AWAY": 2.1, "HOME": 1.8}
 
 
+def test_zero_cost_status_and_operational_checkpoint_cli(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    root = _portable_root(tmp_path)
+    monkeypatch.setenv("SPORTS_EDGE_ROOT", str(root))
+    monkeypatch.delenv("SPORTS_EDGE_THE_ODDS_API_KEY", raising=False)
+    assert RUNNER.invoke(app, ["init-db"]).exit_code == 0
+
+    before = RUNNER.invoke(app, ["zero-cost-status"])
+    created = RUNNER.invoke(app, ["build-operational-checkpoint"])
+    after = RUNNER.invoke(app, ["zero-cost-status"])
+
+    assert before.exit_code == 0
+    before_payload = json.loads(before.output)
+    assert before_payload["status"] == "LIVE_REMOTE_BLOCKED"
+    assert before_payload["paid_services_allowed"] is False
+    assert before_payload["automatic_billing_allowed"] is False
+    assert before_payload["public_repo_is_state_authority"] is False
+    assert before_payload["github_actions_artifact_is_state_authority"] is False
+    assert before_payload["remote_live_collection_ready"] is False
+    assert before_payload["checkpoint_available"] is False
+    assert "NO_VERIFIED_ZERO_COST_DURABLE_BACKEND" in before_payload["blockers"]
+    assert "PRIVATE_DURABLE_CHECKPOINT_STORAGE" in before_payload["required_capabilities"]
+    assert "AUTO_UPGRADE_TO_PAID" in before_payload["forbidden_fallbacks"]
+    assert (
+        "DELETE_POINT_IN_TIME_EVIDENCE_TO_FIT_FREE_QUOTA"
+        in before_payload["forbidden_fallbacks"]
+    )
+
+    assert created.exit_code == 0
+    created_payload = json.loads(created.output)
+    assert created_payload["source_schema_version"] == "0009"
+    assert created_payload["public_export_allowed"] is False
+    assert created_payload["secret_transport"] is False
+    relative = created_payload["relative_path"]
+    assert (root / relative).is_file()
+
+    verified = RUNNER.invoke(app, ["verify-operational-checkpoint", relative])
+    assert verified.exit_code == 0
+    verified_payload = json.loads(verified.output)
+    assert verified_payload["source_schema_version"] == "0009"
+    assert verified_payload["includes_raw_data"] is True
+    assert verified_payload["public_export_allowed"] is False
+
+    assert after.exit_code == 0
+    after_payload = json.loads(after.output)
+    assert after_payload["status"] == "LIVE_REMOTE_BLOCKED"
+    assert after_payload["checkpoint_available"] is True
+    assert after_payload["latest_checkpoint_relative_path"] == relative
+
+
 def test_free_provider_cli_requires_secret_credential(tmp_path: Path, monkeypatch) -> None:
     root = _portable_root(tmp_path)
     monkeypatch.setenv("SPORTS_EDGE_ROOT", str(root))

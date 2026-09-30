@@ -39,6 +39,7 @@ from sports_edge_ai.application.research_readiness import (
 )
 from sports_edge_ai.application.synthetic_pipeline import ingest_synthetic_snapshot
 from sports_edge_ai.application.the_odds_api_pipeline import normalize_historical_nba_h2h
+from sports_edge_ai.application.zero_cost_runtime import get_zero_cost_runtime_status
 from sports_edge_ai.common.release_bundle import build_release_bundle
 from sports_edge_ai.common.root import ProjectPaths
 from sports_edge_ai.common.settings import Settings
@@ -46,6 +47,11 @@ from sports_edge_ai.domain.schemas import DataQualityStatus
 from sports_edge_ai.infrastructure.backup import create_research_backup, restore_research_backup
 from sports_edge_ai.infrastructure.db import migrate
 from sports_edge_ai.infrastructure.odds_repository import get_event_odds_as_of
+from sports_edge_ai.infrastructure.operational_checkpoint import (
+    create_operational_checkpoint,
+    restore_operational_checkpoint,
+    verify_operational_checkpoint,
+)
 from sports_edge_ai.infrastructure.paper_trade_repository import list_ready_paper_event_ids
 from sports_edge_ai.infrastructure.prediction_repository import get_prediction_record
 from sports_edge_ai.infrastructure.provider_usage_repository import get_latest_provider_usage
@@ -637,6 +643,94 @@ def paper_ready_events() -> None:
     typer.echo(
         json.dumps(
             {"event_ids": list(list_ready_paper_event_ids())},
+            ensure_ascii=False,
+        )
+    )
+
+
+@app.command("zero-cost-status")
+def zero_cost_status() -> None:
+    status = get_zero_cost_runtime_status()
+    typer.echo(
+        json.dumps(
+            {
+                "policy_version": status.policy_version,
+                "status": status.status,
+                "paid_services_allowed": status.paid_services_allowed,
+                "automatic_billing_allowed": status.automatic_billing_allowed,
+                "public_repo_is_state_authority": status.public_repo_is_state_authority,
+                "github_actions_artifact_is_state_authority": (
+                    status.github_actions_artifact_is_state_authority
+                ),
+                "remote_live_collection_ready": status.remote_live_collection_ready,
+                "checkpoint_available": status.checkpoint_available,
+                "latest_checkpoint_relative_path": status.latest_checkpoint_relative_path,
+                "blockers": list(status.blockers),
+                "required_capabilities": list(status.required_capabilities),
+                "safe_modes": list(status.safe_modes),
+                "forbidden_fallbacks": list(status.forbidden_fallbacks),
+            },
+            ensure_ascii=False,
+        )
+    )
+
+
+@app.command("build-operational-checkpoint")
+def build_operational_checkpoint() -> None:
+    artifact = create_operational_checkpoint()
+    typer.echo(
+        json.dumps(
+            {
+                "relative_path": artifact.relative_path,
+                "sha256": artifact.sha256,
+                "manifest_sha256": artifact.manifest_sha256,
+                "file_count": artifact.file_count,
+                "total_bytes": artifact.total_bytes,
+                "source_schema_version": artifact.source_schema_version,
+                "public_export_allowed": False,
+                "secret_transport": False,
+            },
+            ensure_ascii=False,
+        )
+    )
+
+
+@app.command("verify-operational-checkpoint")
+def verify_operational_checkpoint_command(checkpoint_path: Path) -> None:
+    paths = ProjectPaths.discover()
+    source = checkpoint_path if checkpoint_path.is_absolute() else paths.root / checkpoint_path
+    verification = verify_operational_checkpoint(source)
+    typer.echo(
+        json.dumps(
+            {
+                "source_name": verification.source_name,
+                "sha256": verification.sha256,
+                "manifest_sha256": verification.manifest_sha256,
+                "created_at": verification.created_at.isoformat(),
+                "file_count": verification.file_count,
+                "total_bytes": verification.total_bytes,
+                "source_schema_version": verification.source_schema_version,
+                "includes_raw_data": verification.includes_raw_data,
+                "public_export_allowed": verification.public_export_allowed,
+                "secret_transport": verification.secret_transport,
+            },
+            ensure_ascii=False,
+        )
+    )
+
+
+@app.command("restore-operational-checkpoint")
+def restore_operational_checkpoint_command(checkpoint_path: Path) -> None:
+    paths = ProjectPaths.discover()
+    source = checkpoint_path if checkpoint_path.is_absolute() else paths.root / checkpoint_path
+    result = restore_operational_checkpoint(source, paths=paths)
+    typer.echo(
+        json.dumps(
+            {
+                "source_checkpoint": result.source_checkpoint,
+                "restored_files": list(result.restored_files),
+                "source_schema_version": result.source_schema_version,
+            },
             ensure_ascii=False,
         )
     )

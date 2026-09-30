@@ -316,3 +316,13 @@ PowerShell 的 `$ErrorActionPreference = "Stop"` 不會自動把所有 native ex
 Public GitHub URL 可作為 source distribution contract，但不可作為真實 point-in-time data store。新增 `sports-edge repo-smoke`，在 ephemeral PROJECT_ROOT 以 tracked migrations + synthetic fixtures 驗證 migration、as-of future-leakage hard gate 與 shared Market Analysis Service；它不讀 secret、不送 network request、不修改既有 operational state，且固定 model_validated=false，禁止產生 EDGE。
 
 若 AI 具備 Git/Python/uv 執行環境，repo URL 足以 clone 後執行此 smoke；若 AI 只有網頁閱讀能力，URL 本身不構成 execution runtime。真實 live/continuous collection 要在個人電腦關機時仍運作，必須另有 remote compute、durable storage、secret injection、scheduler 與 writer/concurrency contract。GitHub Actions 保持 CI/manual ephemeral role，不以 Actions artifact/cache 傳遞 DuckDB/raw history 來冒充正式 operational state，避免 provenance、atomicity、授權與故障恢復退化。
+
+## ADR-0044 — 永不付費是 hard runtime policy；完整 operational state 以 private checkpoint 搬移
+
+日期：2026-09-30
+
+使用者明確要求永不付費，因此此專案的 cloud-ready policy 固定 `paid_services_allowed=false` 與 `automatic_billing_allowed=false`。任何免費 backend 若要求付費升級、超額自動扣款、刪除 point-in-time evidence、把 raw/state 放 public Git，或把 GitHub Actions artifact 當唯一 state authority，都不是合法 fallback。無可驗證免費 durable backend 時，`LIVE_REMOTE_BLOCKED` 是正確狀態。
+
+跨機器 operational state contract 採 private checkpoint，而不是 Git history。Checkpoint roots 固定為 Bronze/Silver/Gold、state、models、reports；排除 `.env`、logs、backups。建立時先要求 DuckDB current schema 等於 latest tracked migration，再掃描 configured provider secret 不得出現在 operational files，對每個檔案保存 SHA-256/bytes，temporary archive 完成後才 atomic rename。Manifest 明確標示 `includes_raw_data=true`、`public_export_allowed=false`、`secret_transport=false`。
+
+Restore 只允許 empty runtime；archive path、manifest、hash、size 與 schema 全部先驗證。拷貝後再次執行 migration integrity check，若 checkout migration 與 restored DB 不一致或任何 post-copy check 失敗，必須刪除本次新增檔案。未來 free object-store adapter 必須實作 private durable storage、atomic/versioned publish、single-writer/CAS、quota fail-closed 與可攜 export；通過 round-trip regression 前不得解除 remote live blocker。

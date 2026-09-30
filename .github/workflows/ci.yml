@@ -40,6 +40,10 @@ jobs:
         run: uv run sports-edge repo-smoke
       - name: Migration smoke
         run: uv run sports-edge init-db
+      - name: Zero-cost operational checkpoint smoke
+        run: uv run sports-edge build-operational-checkpoint
+      - name: Zero-cost policy status
+        run: uv run sports-edge zero-cost-status
       - name: Ruff
         run: uv run ruff check .
       - name: mypy

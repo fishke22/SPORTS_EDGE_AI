@@ -1,6 +1,6 @@
 # Operations Runbook
 
-更新日期：2026-09-29
+更新日期：2026-09-30
 
 本文件描述 portable standalone profile 的可執行流程。所有路徑由 PROJECT_ROOT resolver 決定；
 不得假設專案位於固定磁碟或使用者目錄。
@@ -282,3 +282,39 @@ odds/results/usable-sample counters 是否倒退。
 NOT_READY 本身不是 operational failure；資料量不足時不應製造警報。scheduler runner 順序為
 collection -> research-cycle -> ops-monitor，monitor 一定在最後執行。FastAPI/MCP/Web 只讀最新 snapshot；
 monitor 不會自動修復、不會自動 promotion，也不會執行任何投注。
+
+## 17. Zero-cost runtime / operational checkpoint
+
+先讀 zero-cost policy：
+
+~~~powershell
+uv run sports-edge zero-cost-status
+~~~
+
+在沒有通過驗證的免費 private durable backend 前，正常結果是 `LIVE_REMOTE_BLOCKED`。這不是故障；代表系統拒絕把 public Git、GitHub Actions artifact 或任何可能計費的服務當正式 state authority。
+
+建立完整私有 operational checkpoint：
+
+~~~powershell
+uv run sports-edge build-operational-checkpoint
+~~~
+
+Archive 位於 ignored `backups/operational-checkpoints/`，包含 Bronze/Silver/Gold、DuckDB state、models、reports；不包含 `.env`、logs 或既有 backups。它含 raw/provider data，因此**不得上傳 public Git、public release 或公開 artifact**。
+
+建立前會先對 DuckDB `CHECKPOINT` 並要求 current schema 等於 latest migration；已配置 provider API key 若出現在任何 operational artifact，建立立即失敗。輸出 archive 使用 temporary file + atomic rename，manifest 對每個 file 保存 SHA-256/bytes。
+
+驗證 checkpoint：
+
+~~~powershell
+uv run sports-edge verify-operational-checkpoint backups\operational-checkpoints\<file>.zip
+~~~
+
+Restore 僅限新的空 runtime，不能覆寫既有 operational files：
+
+~~~powershell
+uv run sports-edge restore-operational-checkpoint <PRIVATE_CHECKPOINT_PATH>
+~~~
+
+Restore 先驗 manifest/path/checksum/size/schema，再暫存解壓與拷貝；拷貝後 migration integrity check 失敗會回滾本次新增檔案。Secret 必須另外以 `.env` 或 process environment 注入，checkpoint 永遠不是 secret transport。
+
+零付費遠端模式的未來標準流程是：private durable checkpoint storage -> ephemeral free compute restore -> secret injection -> single-writer collection/research/monitor -> build/verify new checkpoint -> atomic publish。任一 quota/storage/locking step 不滿足即停止，不刪歷史、不降資料品質、不切付費。

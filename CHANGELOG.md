@@ -6,6 +6,9 @@
 - Added `sports-edge repo-smoke`, an offline/credential-free ephemeral repository smoke that proves migrations, point-in-time as-of isolation, shared market analysis, and fail-closed `NO_VALIDATED_EDGE` behavior from a public checkout.
 - Added `docs/CLOUD_RUNTIME.md` defining the repo URL-only execution contract and the durable compute/storage/secret requirements for true computer-independent live collection.
 - GitHub Actions Python matrix now executes the repository smoke on Windows/Linux and Python 3.11/3.14; Actions remains CI/ephemeral and is not promoted to operational state authority.
+- Added a hard fail-closed zero-cost runtime policy: paid services and automatic billing are forbidden, public Git/Actions artifacts cannot be operational state authority, and remote live collection remains blocked until a free private durable backend passes capability checks.
+- Added private full operational checkpoints for Bronze/Silver/Gold, DuckDB state, models, and reports with per-file hashes/sizes, configured-secret leakage detection, atomic archive publication, strict path validation, empty-target restore, migration integrity checks, and rollback on restore failure.
+- GitHub Actions now exercises operational-checkpoint creation and zero-cost policy status on the cross-platform Python matrix without promoting CI artifacts to durable state.
 
 ## [0.1.1] - 2026-09-29
 
