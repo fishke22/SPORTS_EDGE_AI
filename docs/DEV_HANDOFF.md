@@ -66,7 +66,7 @@ Phase 14 由 WebCodex 作為唯一 writer，工作樹自 `907fed0` clean HEAD �
 Phase 15 由 WebCodex 作為唯一 writer，自 clean `27d899a` 開始；只做官方公開文件調查與 docs 更新，不改 runtime code、不建立外部帳號/資源。
 Phase 16A 由 WebCodex 作為唯一 writer，自 clean `277d8f7` 開始。使用者提供 Backblaze Caps & Alerts 畫面後，只將 storage/download/transaction cap evidence 寫入 ignored local `.env`；未把帳號、Email、截圖或任何 B2 secret 放入 Git。此 phase 實作 B2 Native API adapter/preflight 與 fake-transport tests，但沒有建立 bucket/key、沒有送真實 B2 write request，也沒有改本機 scheduler。
 Phase 16B 由 WebCodex 作為唯一 writer，自 clean `c3e621f` 開始。使用者明確確認 Backblaze 帳號未綁付款方式，因此只把 no-payment boolean 寫入 ignored local `.env`；沒有保存 billing screenshot/帳號/Email。此 phase 完成 live-round-trip service/CLI、same-account/account-wide pointer key gates、B2 secret leakage scan 與 fake-provider round-trip/CAS tests；因 bucket/key 尚未建立，沒有送真實 B2 write request。
-Phase 16B 第一個 public CI run `36725201318` 在四組 Python matrix 的同一個 CLI regression 失敗：Typer/Rich ANSI styling 使直接 substring assertion 不可攜；B2 offline smoke、Ruff、mypy 均已成功。修正只把該 assertion 改成既有 `strip_ansi(result.output)`，沒有改 confirmation gate。修後單測、完整 135 Python tests 與 Ruff 本機全綠，需以後續 clean CI run 作最終 public gate。
+Phase 16B 第一個 public CI run `36725201318` 在四組 Python matrix 的同一個 CLI regression 失敗：Typer/Rich ANSI styling 使直接 substring assertion 不可攜；B2 offline smoke、Ruff、mypy 均已成功。修正只把該 assertion 改成既有 `strip_ansi(result.output)`，沒有改 confirmation gate。修正 commit `8d8071b` 的 clean quality-gate run `36726163983` 已 completed/success：Frontend、Python 3.11/3.14 × Windows/Ubuntu、Publication audit 全部通過。
 
 ## Known external gates
 

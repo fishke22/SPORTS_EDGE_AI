@@ -26,6 +26,7 @@ provider production_allowed=false，模型不得宣稱 validated edge。
 - Phase 10 live smoke：research-readiness=NOT_READY，0 usable / 180 first evaluation / 360 validation sample capacity；model_registry/backtest_runs 維持 0。
 - API/MCP contract tests確認 read-only structured interface。
 - publication audit：首次 commit 後重新掃描 Git history，0 blockers / 0 warnings；180 tracked files。
+- GitHub quality-gate：Phase 16B ANSI portability 修正 commit `8d8071b` 的 clean run `36726163983` 已 completed/success；Frontend、Python 3.11/3.14 × Windows/Ubuntu、Publication audit 全部通過。
 - `sports-edge doctor`：DEGRADED / ready_for_research=true；credential 已配置，僅 provider production gate 為 WARN。
 - deterministic release bundle：builder / manifest / hash / raw-exclusion smoke 已通過；runtime ZIP 不進 Git，依 tracked source 可重建。
 - Public GitHub：`https://github.com/fishke22/SPORTS_EDGE_AI`；visibility=public，default branch=`main`。
