@@ -14,6 +14,7 @@
 - Added stale-generation, concurrent-writer, quota-preserves-history, capability-gate, round-trip, CLI, and CI regressions; the local reference adapter is explicitly never remote-live eligible.
 - Added Phase 15 zero-cost backend candidate assessment. Backblaze B2 is documented as conditional-only pending real-account no-payment/data-cap/private/scoped-key round-trip evidence; Supabase remains secondary-only, while R2, Google Drive, and Dropbox Basic are rejected for the hard zero-cost state-authority role under current public terms.
 - Added Phase 16A Backblaze B2 Native API safety preflight and checkpoint adapter contract: offline-by-default status, two-key least-privilege model, private/lifecycle/replication checks, immutable upload + bucket-revision CAS pointer, 403 quota and 409 conflict fail-closed handling, checksum verification, and conservative 250 MB checkpoint limit. Real account cap evidence confirms $0 storage/download and transaction caps, while no-payment-method and live round-trip gates remain unresolved.
+- Added Phase 16B Backblaze live qualification tooling: explicit-confirmation, empty-bucket-only synthetic checkpoint upload/fetch/restore, current-pointer verification, provider stale-revision CAS conflict probe, same-account/account-wide pointer-key gates, and B2 credential leakage scanning in operational checkpoints. User-confirmed no-payment evidence now completes the manual billing-safety gate; real bucket/key/provider round-trip remains pending.
 
 ## [0.1.1] - 2026-09-29
 

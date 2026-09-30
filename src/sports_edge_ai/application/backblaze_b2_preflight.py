@@ -29,6 +29,8 @@ class BackblazeB2ProviderEvidence:
     data_key_prefix_scoped: bool = False
     data_key_capabilities_minimal: bool = False
     pointer_key_capabilities_minimal: bool = False
+    pointer_key_account_wide: bool = False
+    keys_same_account: bool = False
     pointer_key_account_wide_required: bool = True
     provider_round_trip_verified: bool = False
 
@@ -77,6 +79,10 @@ def assess_backblaze_b2_preflight(
         blockers.append("B2_DATA_KEY_CAPABILITIES_NOT_MINIMAL")
     if provider.credentials_configured and not provider.pointer_key_capabilities_minimal:
         blockers.append("B2_POINTER_KEY_CAPABILITIES_NOT_MINIMAL")
+    if provider.credentials_configured and not provider.pointer_key_account_wide:
+        blockers.append("B2_POINTER_KEY_NOT_ACCOUNT_WIDE")
+    if provider.credentials_configured and not provider.keys_same_account:
+        blockers.append("B2_KEYS_NOT_SAME_ACCOUNT")
     if not provider.provider_round_trip_verified:
         blockers.append("B2_PROVIDER_ROUND_TRIP_NOT_VERIFIED")
 

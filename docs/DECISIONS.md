@@ -356,3 +356,13 @@ Phase 16 必須由使用者先建立免費 B2 account 並完成安全設定，�
 Native API CAS 採 bucketInfo + bucket revision / `ifRevisionIs`。官方 capability contract 顯示 `writeBuckets` 不允許 bucket-restricted key，因此單一 bucket-scoped key 無法同時滿足 file access 與 bucket CAS。架構改成 data key（bucket+prefix scoped，最小 read/writeFiles + replication-read）以及 pointer key（account-wide 但只 listBuckets+writeBuckets）兩把 secret；pointer key 不具 delete、file、key-management capability。這個限制必須在 preflight 中顯式驗證，不能用 master key 取代。
 
 Phase 16A adapter 允許在 round-trip gate 尚未通過前做受控 publish/fetch 測試，但 production `remote_live_ready` 必須等 provider round-trip evidence 為 true；403 cap、409 conflict、public bucket、replication、lifecycle deletion、過度權限或 checksum mismatch 任一發生皆 fail closed。
+
+## ADR-0048 — B2 真實 round-trip 只能在空專用 bucket 執行，且不得自動啟用 scheduler
+
+日期：2026-09-30
+
+使用者明確確認 Backblaze 帳號沒有付款方式，因此 no-payment manual evidence 可與既有 `$0` caps 一起標 true；public repo 只記錄布林結論，不保存帳號或截圖。
+
+`b2-live-roundtrip` 是 destructive-risk-minimized provider qualification，不是 production state migration。它必須先通過 billing/key/bucket storage preflight，並拒絕已有 current checkpoint pointer 的 bucket，避免 synthetic qualification state 覆蓋任何真實 operational pointer。Round-trip 只建立隔離 synthetic PROJECT_ROOT，依 migration 建立 tiny checkpoint，publish/fetch/verify/restore 後執行 stale revision CAS probe；不刪 immutable versions，失敗時 fail closed。
+
+B2 pointer key 除 capability 最小化外，必須 account-wide scope（Backblaze writeBuckets 限制）且與 data key 同一 account；data key 仍必須 bucket+prefix scoped。Operational checkpoint leakage scan 擴充到所有 B2 key ID/application-key secrets。Provider qualification PASS 只代表 durable backend 有資格進下一 phase；不自動建立 GitHub Actions remote-live scheduler，也不變更 model/readiness gate。

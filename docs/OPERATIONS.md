@@ -351,4 +351,21 @@ uv run sports-edge b2-preflight-status --live
 
 Data key 必須限定目標 bucket + `sports-edge-ai/` prefix；pointer key 必須是另一把只具有 `listBuckets` + `writeBuckets` 的 capability-scoped key。原因是 Backblaze 不允許 bucket-restricted key 使用 `writeBuckets`。任何 key 多出 delete/file/key-management 等非必要能力都視為 preflight blocker。
 
-目前帳號 evidence 已確認 `$0` storage/download caps 與 B/C transaction caps；no-payment-method 尚未確認，所以正常輸出仍為 `LIVE_REMOTE_BLOCKED`。不要為了讓狀態變 READY 而手動把未證實 flag 改成 true。
+目前帳號 evidence 已確認 `$0` storage/download caps、B/C transaction caps，且使用者明確確認沒有付款方式；四個 manual flags 均可為 true。若 bucket/key/round-trip 尚未完成，正常輸出仍是 `LIVE_REMOTE_BLOCKED`。
+
+## 20. Backblaze B2 live round-trip qualification
+
+只有專用 private bucket、兩把 key 都建立且 `b2-preflight-status --live` 的 storage preflight 無 blocker 時，才執行：
+
+~~~powershell
+uv run sports-edge b2-live-roundtrip --confirm
+~~~
+
+安全限制：
+
+- Bucket 必須尚無 SPORTS_EDGE current checkpoint pointer；若已有 pointer，命令直接拒絕，不覆蓋真實 state。
+- 測試 runtime 全部在 OS temporary directory；不讀寫目前 `data/` / `state/` / `models/` / `reports/`。
+- 上傳的是 tiny synthetic operational checkpoint；成功後它會保留在 B2，命令不自動刪除任何 version。
+- 下載後同時驗 B2 SHA1、pointer SHA-256、checkpoint manifest，再 restore 到另一個 empty temporary runtime 比對 marker。
+- 最後以過期 bucket revision 做 CAS conflict probe；預期 Backblaze 回 409，且 current pointer 不改變。
+- PASS 輸出仍固定 `scheduler_enabled=false`；不得把 qualification 等同自動啟用遠端收集。

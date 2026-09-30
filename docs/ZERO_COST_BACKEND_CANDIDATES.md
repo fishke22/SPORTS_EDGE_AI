@@ -60,9 +60,15 @@
 
 使用者實際 Backblaze Caps & Alerts 畫面已確認：daily storage cap 顯示 `$0.00 (10 GB)`、daily download cap 顯示 `$0.00 (1 GB)`，Class B / C transaction 顯示每日最多 2,500。這三項 evidence 只寫入本機 ignored `.env`，public repo 不保存帳號、Email 或截圖。
 
-目前仍缺「帳號沒有付款方式」的直接畫面證據，因此 `NO_PAYMENT_METHOD_NOT_CONFIRMED` 與 `AUTOMATIC_BILLING_POSSIBLE` 仍是有效 blocker。Private bucket、data/pointer keys 與 provider round-trip 也尚未建立，因此 `LIVE_REMOTE_BLOCKED` 不變。
+使用者已明確確認帳號沒有付款方式，因此本機 no-payment evidence 已標 true，與 `$0` storage/download/transaction caps 一起完成 billing safety gate。Private bucket、data/pointer keys 與 provider round-trip 仍尚未建立，因此 `LIVE_REMOTE_BLOCKED` 不變。
 
 Phase 16A 已實作 `backblaze-b2-native-v1` adapter 與 fail-closed preflight。Native API 使用 immutable content-addressed checkpoint object + bucketInfo current pointer；pointer 更新以 bucket `revision` + `ifRevisionIs` CAS。403 `storage_cap_exceeded` / `transaction_cap_exceeded` 轉成 quota failure，409 conflict 轉成 CAS failure；錯誤訊息不輸出 key/token。單檔 checkpoint 目前額外限制 250 MB，遠低於帳號畫面 1 GB/day download cap，超過即本地 fail closed。
+
+## Phase 16B live qualification readiness
+
+程式已新增空 bucket-only 的真實 qualification workflow：`b2-live-roundtrip --confirm`。它不會拿現有 production checkpoint 作測試；只在 current pointer 不存在時上傳 synthetic checkpoint，完成 fetch/verify/restore 後執行 stale-revision 409 CAS probe。Pointer key 另外要求 account-wide scope且必須與 data key 同 account；operational checkpoint leakage scan 也涵蓋 B2 key secrets。
+
+目前仍缺的人工作業只有：建立專用 private bucket（無 lifecycle deletion、Cloud Replication 關閉）、建立 data key + pointer key，並把 bucket/key 值只寫入本機 ignored `.env`。完成後先 live preflight，再執行 qualification round-trip；PASS 後才能考慮 GitHub Actions secret injection/scheduler phase。
 
 ## Supabase Free — CONDITIONAL SECONDARY / NOT PRIMARY
 

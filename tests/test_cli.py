@@ -95,6 +95,13 @@ def test_b2_preflight_status_cli_is_offline_and_fail_closed(
     assert "B2_CREDENTIALS_NOT_CONFIGURED" in payload["blockers"]
 
 
+def test_b2_live_roundtrip_cli_requires_explicit_confirmation() -> None:
+    result = RUNNER.invoke(app, ["b2-live-roundtrip"])
+
+    assert result.exit_code != 0
+    assert "--confirm is required" in result.output
+
+
 def test_zero_cost_status_and_operational_checkpoint_cli(
     tmp_path: Path,
     monkeypatch,

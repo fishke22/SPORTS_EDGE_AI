@@ -119,10 +119,21 @@ def _iter_checkpoint_files(paths: ProjectPaths) -> tuple[Path, ...]:
 
 def _configured_secret_tokens(paths: ProjectPaths) -> tuple[bytes, ...]:
     settings = Settings(project_root=paths.root)
-    if settings.the_odds_api_key is None:
-        return ()
-    value = settings.the_odds_api_key.get_secret_value().strip()
-    return () if not value else (value.encode("utf-8"),)
+    secret_values = (
+        settings.the_odds_api_key,
+        settings.backblaze_b2_key_id,
+        settings.backblaze_b2_application_key,
+        settings.backblaze_b2_pointer_key_id,
+        settings.backblaze_b2_pointer_application_key,
+    )
+    tokens: list[bytes] = []
+    for secret in secret_values:
+        if secret is None:
+            continue
+        value = secret.get_secret_value().strip()
+        if value:
+            tokens.append(value.encode("utf-8"))
+    return tuple(tokens)
 
 
 def _assert_no_configured_secret_leakage(paths: ProjectPaths, files: tuple[Path, ...]) -> None:

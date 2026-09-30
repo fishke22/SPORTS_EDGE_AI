@@ -159,7 +159,15 @@ B2 的技術方向符合 Phase 14 contract：private bucket、版本、scoped ke
 - v1 單 checkpoint hard limit 250 MB；超過不嘗試 upload，避免靠近免費 download/storage 邊界。
 - Provider round-trip 未實證前，remote live gate 仍維持 blocked。
 
-## 9. 建議的演進順序
+## 9. Phase 16B — Live provider qualification tooling
+
+使用者已明確確認 Backblaze 帳號沒有付款方式，因此四個 manual safety evidence（no-payment、$0 storage、$0 download、transaction caps）在本機 ignored settings 均為 true。Offline preflight 現在只剩 bucket/credentials/provider round-trip 等 blocker。
+
+新增 `sports-edge b2-live-roundtrip --confirm`，但它只允許專用 B2 bucket 尚無 current checkpoint pointer 時執行。流程：live preflight -> isolated temporary PROJECT_ROOT -> migration -> tiny synthetic checkpoint -> immutable B2 upload -> bucketInfo pointer CAS -> fetch/SHA/manifest verify -> clean restore -> marker compare -> stale revision 409 CAS conflict probe -> final preflight。Round-trip 不會刪除任何 B2 version，也不會讀寫本機 production operational state。
+
+Preflight 進一步要求 pointer key 為 account-wide capability scope、data/pointer keys 屬同一 Backblaze account；checkpoint secret leakage scan 也涵蓋兩把 B2 key 的 ID/application key。Round-trip PASS 只解除 provider evidence blocker，不直接建立排程；GitHub Actions scheduler/secret injection 必須在後續 phase 才能施工。
+
+## 10. 建議的演進順序
 
 目前先維持：
 

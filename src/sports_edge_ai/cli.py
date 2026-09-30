@@ -6,6 +6,9 @@ from pathlib import Path
 
 import typer
 
+from sports_edge_ai.application.backblaze_b2_roundtrip import (
+    run_backblaze_b2_live_roundtrip,
+)
 from sports_edge_ai.application.backblaze_b2_status import (
     get_backblaze_b2_preflight_status,
 )
@@ -728,10 +731,48 @@ def b2_preflight_status(
                     "pointer_key_capabilities_minimal": (
                         assessment.provider_evidence.pointer_key_capabilities_minimal
                     ),
+                    "pointer_key_account_wide": (
+                        assessment.provider_evidence.pointer_key_account_wide
+                    ),
+                    "keys_same_account": assessment.provider_evidence.keys_same_account,
                     "provider_round_trip_verified": (
                         assessment.provider_evidence.provider_round_trip_verified
                     ),
                 },
+            },
+            ensure_ascii=False,
+        )
+    )
+
+
+@app.command("b2-live-roundtrip")
+def b2_live_roundtrip(
+    confirm: bool = typer.Option(
+        False,
+        "--confirm",
+        help=(
+            "Required explicit confirmation. Performs a real B2 upload/download/CAS probe "
+            "against the configured empty checkpoint bucket."
+        ),
+    ),
+) -> None:
+    if not confirm:
+        raise typer.BadParameter(
+            "--confirm is required because this command writes a synthetic checkpoint to B2"
+        )
+    result = run_backblaze_b2_live_roundtrip()
+    typer.echo(
+        json.dumps(
+            {
+                "status": result.status,
+                "checkpoint_sha256": result.checkpoint_sha256,
+                "generation": result.generation,
+                "bytes": result.bytes,
+                "restored_marker": result.restored_marker,
+                "cas_conflict_verified": result.cas_conflict_verified,
+                "remote_live_ready": result.remote_live_ready,
+                "blockers": list(result.blockers),
+                "scheduler_enabled": False,
             },
             ensure_ascii=False,
         )

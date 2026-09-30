@@ -594,6 +594,7 @@ class BackblazeB2CheckpointBackend:
 
         data_caps = data_auth.capabilities
         pointer_caps = pointer_auth.capabilities
+        keys_same_account = data_auth.account_id == pointer_auth.account_id
         provider = BackblazeB2ProviderEvidence(
             credentials_configured=True,
             bucket_configured=True,
@@ -615,6 +616,8 @@ class BackblazeB2CheckpointBackend:
                 and pointer_caps.issubset(_POINTER_ALLOWED_CAPABILITIES)
                 and not pointer_auth.name_prefix
             ),
+            pointer_key_account_wide=not pointer_auth.allowed_buckets,
+            keys_same_account=keys_same_account,
             pointer_key_account_wide_required=True,
             provider_round_trip_verified=False,
         )
@@ -774,6 +777,25 @@ class BackblazeB2CheckpointBackend:
             sha256=verification.sha256,
             bytes=source.stat().st_size,
             object_name=object_name,
+        )
+
+    def verify_stale_revision_conflict(self) -> None:
+        context = self._require_storage_context()
+        if context.bucket.revision <= 0:
+            raise CheckpointBackendError(
+                "Backblaze B2 bucket revision must be positive for CAS probe"
+            )
+        stale = replace(context.bucket, revision=context.bucket.revision - 1)
+        try:
+            self.client.update_bucket_info(
+                context.pointer_auth,
+                bucket=stale,
+                bucket_info=dict(context.bucket.bucket_info),
+            )
+        except CheckpointBackendConflictError:
+            return
+        raise CheckpointBackendError(
+            "Backblaze B2 stale revision CAS probe unexpectedly succeeded"
         )
 
     def fetch_latest(self, destination_dir: Path) -> Path:

@@ -135,6 +135,25 @@ def test_operational_checkpoint_rejects_configured_secret_leakage(tmp_path: Path
     assert not checkpoint_dir.exists() or not tuple(checkpoint_dir.glob("*.zip"))
 
 
+def test_operational_checkpoint_rejects_backblaze_secret_leakage(tmp_path: Path) -> None:
+    source = _portable_root(tmp_path, "source")
+    migrate(source)
+    source.ensure_runtime_dirs()
+    secret = "never-export-this-b2-key-123456"
+    (source.root / ".env").write_text(
+        f"SPORTS_EDGE_BACKBLAZE_B2_APPLICATION_KEY={secret}\n",
+        encoding="utf-8",
+    )
+    leaked_report = source.reports / "bad-b2-report.txt"
+    leaked_report.write_text(f"credential={secret}\n", encoding="utf-8")
+
+    with pytest.raises(RuntimeError, match="configured credential leaked"):
+        create_operational_checkpoint(paths=source)
+
+    checkpoint_dir = source.backups / "operational-checkpoints"
+    assert not checkpoint_dir.exists() or not tuple(checkpoint_dir.glob("*.zip"))
+
+
 def test_operational_checkpoint_rejects_noncanonical_windows_like_path(tmp_path: Path) -> None:
     source = _portable_root(tmp_path, "source")
     migrate(source)

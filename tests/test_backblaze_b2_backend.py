@@ -10,6 +10,10 @@ from urllib.parse import unquote
 
 import pytest
 
+from sports_edge_ai.application.backblaze_b2_roundtrip import (
+    B2_ROUND_TRIP_MARKER,
+    run_backblaze_b2_live_roundtrip,
+)
 from sports_edge_ai.application.backblaze_b2_status import (
     get_backblaze_b2_preflight_status,
 )
@@ -96,6 +100,8 @@ class ScenarioB2Transport:
             "writeFiles",
             "readBucketReplications",
         ]
+        self.pointer_account_id = "account-1"
+        self.pointer_allowed_buckets: list[dict[str, str]] = []
 
     def _json(self, status: int, payload: dict[str, object]) -> B2HttpResponse:
         return B2HttpResponse(
@@ -168,7 +174,7 @@ class ScenarioB2Transport:
                 token = "data-token"
             elif key_id == "pointer-id":
                 allowed = {
-                    "buckets": [],
+                    "buckets": list(self.pointer_allowed_buckets),
                     "capabilities": ["listBuckets", "writeBuckets"],
                     "namePrefix": None,
                 }
@@ -178,7 +184,9 @@ class ScenarioB2Transport:
             return self._json(
                 200,
                 {
-                    "accountId": "account-1",
+                    "accountId": (
+                        self.pointer_account_id if key_id == "pointer-id" else "account-1"
+                    ),
                     "authorizationToken": token,
                     "apiInfo": {
                         "storageApi": {
@@ -310,6 +318,22 @@ def test_preflight_rejects_public_bucket_replication_and_overprivileged_key(
     assert "B2_DATA_KEY_CAPABILITIES_NOT_MINIMAL" in assessment.blockers
 
 
+def test_preflight_rejects_pointer_key_scope_or_account_mismatch(tmp_path: Path) -> None:
+    transport = ScenarioB2Transport()
+    transport.pointer_allowed_buckets = [{"id": "bucket-1", "name": "sports-edge-test"}]
+    transport.pointer_account_id = "other-account"
+    backend = BackblazeB2CheckpointBackend(
+        settings=_settings(tmp_path),
+        transport=transport,
+    )
+
+    assessment = backend.preflight(provider_round_trip_verified=True)
+
+    assert assessment.remote_live_ready is False
+    assert "B2_POINTER_KEY_NOT_ACCOUNT_WIDE" in assessment.blockers
+    assert "B2_KEYS_NOT_SAME_ACCOUNT" in assessment.blockers
+
+
 def test_b2_backend_round_trip_and_stale_generation_rejection(tmp_path: Path) -> None:
     paths = _portable_root(tmp_path, "source")
     first_archive = _checkpoint(
@@ -341,6 +365,45 @@ def test_b2_backend_round_trip_and_stale_generation_rejection(tmp_path: Path) ->
         backend.publish(second_archive, expected_generation="7")
 
     assert backend.latest() == stored
+
+
+def test_b2_live_round_trip_isolated_runtime_and_provider_cas(tmp_path: Path) -> None:
+    transport = ScenarioB2Transport()
+
+    result = run_backblaze_b2_live_roundtrip(
+        settings=_settings(tmp_path),
+        transport=transport,
+        source_paths=ProjectPaths(PROJECT_ROOT),
+    )
+
+    assert result.status == "PASS"
+    assert result.remote_live_ready is True
+    assert result.blockers == ()
+    assert result.cas_conflict_verified is True
+    assert result.restored_marker == B2_ROUND_TRIP_MARKER
+    assert transport.revision == 8
+
+
+def test_b2_live_round_trip_refuses_existing_current_pointer(tmp_path: Path) -> None:
+    paths = _portable_root(tmp_path, "source-existing")
+    archive = _checkpoint(
+        paths,
+        "existing",
+        datetime(2026, 9, 30, 13, 0, tzinfo=UTC),
+    )
+    transport = ScenarioB2Transport()
+    backend = BackblazeB2CheckpointBackend(
+        settings=_settings(tmp_path),
+        transport=transport,
+    )
+    backend.publish(archive, expected_generation=None)
+
+    with pytest.raises(RuntimeError, match="requires an empty checkpoint bucket"):
+        run_backblaze_b2_live_roundtrip(
+            settings=_settings(tmp_path),
+            transport=transport,
+            source_paths=ProjectPaths(PROJECT_ROOT),
+        )
 
 
 def test_b2_backend_403_cap_fails_before_pointer_update(tmp_path: Path) -> None:

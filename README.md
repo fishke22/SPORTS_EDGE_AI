@@ -37,6 +37,8 @@ Phase 14 已加入可替換的 checkpoint backend contract 與 local filesystem 
 
 Phase 16A 已加入 Backblaze B2 Native API adapter 與 `b2-preflight-status`。預設 status 完全離線；加 `--live` 才會使用本機 ignored `.env` 的 B2 credentials 讀取 bucket/key capability evidence。真正 remote live 仍被 gate 擋住，直到 no-payment-method、$0 caps、private bucket、兩把最小權限 key、no replication 與真實 round-trip 全部成立。
 
+Phase 16B 已加入 `b2-live-roundtrip --confirm`。它只允許對**沒有 current checkpoint pointer 的專用空 bucket**執行，會建立隔離 synthetic runtime、上傳 tiny private checkpoint、下載/驗 hash、clean restore、確認 current pointer，再用 stale bucket revision 做無破壞 CAS conflict probe。它不刪 B2 versions、不接觸本機 production state，也不啟用 scheduler。
+
 ## Portable-first
 
 程式不得依賴目前磁碟位置。根目錄解析順序：`SPORTS_EDGE_ROOT` → `.sports-edge-root` / repository
@@ -50,6 +52,8 @@ uv run sports-edge repo-smoke
 uv run sports-edge zero-cost-status
 uv run sports-edge checkpoint-backend-smoke
 uv run sports-edge b2-preflight-status
+# 只有完成 private bucket + 兩把最小權限 key 後才執行：
+# uv run sports-edge b2-live-roundtrip --confirm
 uv run sports-edge init-db
 uv run sports-edge doctor
 uv run sports-edge collection-status

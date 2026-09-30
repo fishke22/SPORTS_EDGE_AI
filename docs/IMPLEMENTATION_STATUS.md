@@ -14,18 +14,18 @@ provider production_allowed=false，模型不得宣稱 validated edge。
 
 ## 最終驗證
 
-- pytest：9.1.1，130 passed（含 repository URL offline smoke、zero-cost runtime policy、operational checkpoint、backend contract 與 Backblaze B2 safety regressions）。
+- pytest：9.1.1，135 passed（含 repository URL offline smoke、zero-cost runtime policy、operational checkpoint、backend contract、Backblaze B2 safety 與 live-round-trip regressions）。
 - Phase 10 persisted-readiness regression：snapshot 存在時 shared API/MCP/Web read facade 不重建 training dataset；無 snapshot 時 fallback live assessment；snapshot sample/status/remaining/blockers 與 ledger 一致。
 - Ruff：all checks passed。
-- mypy strict：69 source files，0 issues。
+- mypy strict：70 source files，0 issues。
 - frontend Vitest：2 passed。
 - TypeScript / Vite production build：passed。
 - npm audit：0 vulnerabilities。
-- scripts/bootstrap.ps1：Phase 16A 最終工作樹 passed；130 Python tests、Ruff、mypy 69 source files、Frontend 2 tests/build/npm audit 全綠；DuckDB current_version=0009；doctor 僅 provider production gate WARN。
+- scripts/bootstrap.ps1：Phase 16B 最終工作樹 passed；135 Python tests、Ruff、mypy 70 source files、Frontend 2 tests/build/npm audit 全綠；DuckDB current_version=0009；doctor 僅 provider production gate WARN。
 - scripts/verify_portability.ps1：passed。
 - Phase 10 live smoke：research-readiness=NOT_READY，0 usable / 180 first evaluation / 360 validation sample capacity；model_registry/backtest_runs 維持 0。
 - API/MCP contract tests確認 read-only structured interface。
-- publication audit：首次 commit 後重新掃描 Git history，0 blockers / 0 warnings；179 tracked files。
+- publication audit：首次 commit 後重新掃描 Git history，0 blockers / 0 warnings；180 tracked files。
 - `sports-edge doctor`：DEGRADED / ready_for_research=true；credential 已配置，僅 provider production gate 為 WARN。
 - deterministic release bundle：builder / manifest / hash / raw-exclusion smoke 已通過；runtime ZIP 不進 Git，依 tracked source 可重建。
 - Public GitHub：`https://github.com/fishke22/SPORTS_EDGE_AI`；visibility=public，default branch=`main`。
@@ -68,7 +68,7 @@ Synthetic evidence 永遠 fail closed；HISTORICAL_POINT_IN_TIME 仍需真實可
 
 狀態：完成。
 
-- CLI：health/repo-smoke/checkpoint-backend-smoke/zero-cost-status/init-db、synthetic/provider ingestion、mapping review、as-of/baseline/analysis、local NBA research、research readiness/cycle、operational monitor/status、prediction、paper workflow、provider usage、forward collect/status、operational checkpoint、backup/restore、doctor、build-release。
+- CLI：health/repo-smoke/checkpoint-backend-smoke/zero-cost-status/b2-preflight-status/b2-live-roundtrip/init-db、synthetic/provider ingestion、mapping review、as-of/baseline/analysis、local NBA research、research readiness/cycle、operational monitor/status、prediction、paper workflow、provider usage、forward collect/status、operational checkpoint、backup/restore、doctor、build-release。
 - FastAPI：health、odds、baseline、analysis、model/backtest、entity mapping reads、provider usage、forward collection status、NBA research readiness、operational status、event result、paper portfolio。
 - MCP：15 個 read-only/idempotent structured-output tools；無 ingestion/mutation/betting/model promotion。
 - Web：market analysis + provider quota + mapping review + forward collection freshness + NBA research readiness + operational health + paper portfolio read dashboard；不在 frontend 重算 domain logic。
@@ -207,6 +207,14 @@ Supabase Free 只保留 secondary/control-plane 候選，因 1 GB storage 與低
 
 B2 權限拆成兩把 key：data key 必須單一 bucket + `sports-edge-ai/` prefix scoped，只含 listBuckets/readFiles/writeFiles/readBucketReplications 等最小能力；pointer key 因 Backblaze 不允許 bucket-restricted key 使用 writeBuckets，只允許 account-wide `listBuckets + writeBuckets`，不得混入 file/delete/key-management capabilities。Phase 16A targeted B2/CLI tests=20 passed；full bootstrap=130 Python tests / Ruff passed / mypy 69 source files / Frontend 2 tests / npm audit 0 vulnerabilities。
 
+## Phase 16B — Backblaze B2 Live Round-Trip Tooling
+
+狀態：可自動施工部分完成；billing safety 已由使用者明確確認且本機 evidence flag=true。尚未建立 private bucket / data key / pointer key，因此未對真實 B2 執行 write round-trip，remote live 仍 blocked。
+
+新增 `b2-live-roundtrip --confirm`。命令先跑 live preflight，且只允許 current pointer 尚不存在的專用空 bucket；之後在 OS 暫存目錄建立獨立 PROJECT_ROOT、migration 0009 與 marker，建立 tiny operational checkpoint、publish、latest pointer compare、download、SHA/manifest verify、clean-runtime restore、marker compare，再以 stale bucket revision 執行無破壞 409 CAS conflict probe。最後只有 provider round-trip evidence=true 且完整 preflight 無 blocker 才回 PASS。命令不刪任何 B2 object/version、不碰本機 production DuckDB，也固定 `scheduler_enabled=false`。
+
+B2 preflight 另新增 pointer key 必須 account-wide capability scope、data/pointer keys 必須同 account 的 gate。Operational checkpoint secret leakage scan 現在同時涵蓋 The Odds API key 與 B2 data/pointer key IDs/application keys。Targeted B2/checkpoint/CLI=31 passed；full bootstrap=135 Python tests / Ruff / mypy 70 source files / Frontend 2 tests / npm audit 0 vulnerabilities。
+
 ## 外部 Gate / 非程式缺口
 
 1. Historical paid entitlement：live probe 已回 HTTP 401；目前帳號不可使用 historical endpoints。
@@ -214,5 +222,5 @@ B2 權限拆成兩把 key：data key 必須單一 bucket + `sports-edge-ai/` pre
 3. Live provider mapping：30 個正式 NBA franchise 已 review approved，2 個非正式 provider participants rejected；目前 mapping completion=1.0。
 4. Git：repository-local identity 已設定為 `fishke22 <fishke22@gmail.com>`；首次 commit 已完成。
 5. Public GitHub：`fishke22/SPORTS_EDGE_AI` 已公開；後續變更仍需通過 publication audit 與 CI。
-6. Zero-cost cloud live runtime：Phase 16A 已確認真實帳號的 $0 storage/download/transaction caps，並完成 B2 Native API fail-closed adapter contract；仍缺 no-payment-method 直接證據、private bucket、兩把最小權限 key 與 provider-specific round-trip，所以 remote live 正確狀態仍為 LIVE_REMOTE_BLOCKED。Phase 16B 需要使用者先完成 billing safety 與 bucket/key 設定，再執行 live preflight/round-trip。
+6. Zero-cost cloud live runtime：$0 storage/download/transaction caps 與 no-payment-method 已由真實帳號/使用者確認，Phase 16B live-round-trip tooling 也完成；目前只剩 private bucket、兩把最小權限 key 與 provider-specific round-trip 尚未建立/執行，所以 remote live 正確狀態仍為 LIVE_REMOTE_BLOCKED。下一步必須由使用者建立 bucket/key 並只把 secret 存本機 ignored `.env`。
 7. 台灣運彩 adapter / 真實 payout-tax rule：需合法官方資料與版本化規則來源後另行施工；目前不猜值。
