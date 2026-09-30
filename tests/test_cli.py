@@ -99,7 +99,7 @@ def test_b2_live_roundtrip_cli_requires_explicit_confirmation() -> None:
     result = RUNNER.invoke(app, ["b2-live-roundtrip"])
 
     assert result.exit_code != 0
-    assert "--confirm is required" in result.output
+    assert "--confirm is required" in strip_ansi(result.output)
 
 
 def test_zero_cost_status_and_operational_checkpoint_cli(

@@ -16,6 +16,9 @@
 - Added Phase 16A Backblaze B2 Native API safety preflight and checkpoint adapter contract: offline-by-default status, two-key least-privilege model, private/lifecycle/replication checks, immutable upload + bucket-revision CAS pointer, 403 quota and 409 conflict fail-closed handling, checksum verification, and conservative 250 MB checkpoint limit. Real account cap evidence confirms $0 storage/download and transaction caps, while no-payment-method and live round-trip gates remain unresolved.
 - Added Phase 16B Backblaze live qualification tooling: explicit-confirmation, empty-bucket-only synthetic checkpoint upload/fetch/restore, current-pointer verification, provider stale-revision CAS conflict probe, same-account/account-wide pointer-key gates, and B2 credential leakage scanning in operational checkpoints. User-confirmed no-payment evidence now completes the manual billing-safety gate; real bucket/key/provider round-trip remains pending.
 
+### Fixed
+- Normalized ANSI styling in the new `b2-live-roundtrip` explicit-confirmation CLI regression. The first Phase 16B clean GitHub run exposed the same Rich/Typer terminal-color portability issue previously fixed for another safety-message test; command behavior and confirmation requirements are unchanged.
+
 ## [0.1.1] - 2026-09-29
 
 ### Security
