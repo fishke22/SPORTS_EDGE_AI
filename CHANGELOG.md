@@ -9,6 +9,7 @@
 - Added a hard fail-closed zero-cost runtime policy: paid services and automatic billing are forbidden, public Git/Actions artifacts cannot be operational state authority, and remote live collection remains blocked until a free private durable backend passes capability checks.
 - Added private full operational checkpoints for Bronze/Silver/Gold, DuckDB state, models, and reports with per-file hashes/sizes, configured-secret leakage detection, atomic archive publication, strict path validation, empty-target restore, migration integrity checks, and rollback on restore failure.
 - GitHub Actions now exercises operational-checkpoint creation and zero-cost policy status on the cross-platform Python matrix without promoting CI artifacts to durable state.
+- Pinned Linux CI jobs to `ubuntu-24.04` after GitHub announced the `ubuntu-latest` image migration to Ubuntu 26, avoiding unreviewed runner-image drift in the quality gate.
 
 ## [0.1.1] - 2026-09-29
 
