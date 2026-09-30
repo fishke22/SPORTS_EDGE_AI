@@ -46,6 +46,8 @@ jobs:
         run: uv run sports-edge zero-cost-status
       - name: Zero-cost backend contract smoke
         run: uv run sports-edge checkpoint-backend-smoke
+      - name: Backblaze B2 offline preflight smoke
+        run: uv run sports-edge b2-preflight-status
       - name: Ruff
         run: uv run ruff check .
       - name: mypy

@@ -14,18 +14,18 @@ provider production_allowed=false，模型不得宣稱 validated edge。
 
 ## 最終驗證
 
-- pytest：9.1.1，121 passed（含 repository URL offline smoke、zero-cost runtime policy、operational checkpoint 與 backend contract regressions）。
+- pytest：9.1.1，130 passed（含 repository URL offline smoke、zero-cost runtime policy、operational checkpoint、backend contract 與 Backblaze B2 safety regressions）。
 - Phase 10 persisted-readiness regression：snapshot 存在時 shared API/MCP/Web read facade 不重建 training dataset；無 snapshot 時 fallback live assessment；snapshot sample/status/remaining/blockers 與 ledger 一致。
 - Ruff：all checks passed。
-- mypy strict：66 source files，0 issues。
+- mypy strict：69 source files，0 issues。
 - frontend Vitest：2 passed。
 - TypeScript / Vite production build：passed。
 - npm audit：0 vulnerabilities。
-- scripts/bootstrap.ps1：Phase 14 最終工作樹 passed；121 Python tests、Ruff、mypy 66 source files、Frontend 2 tests/build/npm audit 全綠；DuckDB current_version=0009；doctor 僅 provider production gate WARN。
+- scripts/bootstrap.ps1：Phase 16A 最終工作樹 passed；130 Python tests、Ruff、mypy 69 source files、Frontend 2 tests/build/npm audit 全綠；DuckDB current_version=0009；doctor 僅 provider production gate WARN。
 - scripts/verify_portability.ps1：passed。
 - Phase 10 live smoke：research-readiness=NOT_READY，0 usable / 180 first evaluation / 360 validation sample capacity；model_registry/backtest_runs 維持 0。
 - API/MCP contract tests確認 read-only structured interface。
-- publication audit：首次 commit 後重新掃描 Git history，0 blockers / 0 warnings；175 tracked files。
+- publication audit：首次 commit 後重新掃描 Git history，0 blockers / 0 warnings；179 tracked files。
 - `sports-edge doctor`：DEGRADED / ready_for_research=true；credential 已配置，僅 provider production gate 為 WARN。
 - deterministic release bundle：builder / manifest / hash / raw-exclusion smoke 已通過；runtime ZIP 不進 Git，依 tracked source 可重建。
 - Public GitHub：`https://github.com/fishke22/SPORTS_EDGE_AI`；visibility=public，default branch=`main`。
@@ -197,6 +197,16 @@ Regression 已覆蓋 publish/fetch/verify/restore round-trip、stale generation 
 
 Supabase Free 只保留 secondary/control-plane 候選，因 1 GB storage 與低活動 auto-pause；Cloudflare R2 因 subscription checkout 與 billable overage 淘汰；Google Drive 因 2026 年稍後預定導入超額計費淘汰；Dropbox Basic 因 over-quota 情況可能刪除使用者檔案，不符合 evidence preservation，淘汰。GitHub Actions standard runners 在 public repo 仍可作免費 ephemeral compute，但不是 state authority。
 
+## Phase 16A — Backblaze B2 Safety Preflight / Adapter Contract
+
+狀態：程式、fake-transport regressions、CLI offline preflight 與完整 bootstrap 已完成；尚未建立 B2 bucket/key，也未執行真實 provider round-trip，因此 remote live 仍 blocked。
+
+使用者實際 Caps & Alerts 畫面已確認 daily storage `$0.00 / 10 GB`、download `$0.00 / 1 GB`、Class B/C transaction 2,500/day。這三項 evidence 僅寫入 ignored local `.env`；public repo 不保存帳號、Email 或截圖。畫面未證明帳號沒有付款方式，所以 `NO_PAYMENT_METHOD_NOT_CONFIRMED` 與 `AUTOMATIC_BILLING_POSSIBLE` 仍保留。
+
+新增 `backblaze-b2-native-v1` 與 `backblaze-b2-zero-cost-preflight-v1`。預設 `b2-preflight-status` 完全離線；只有顯式 `--live` 且本機已配置 credentials 才會讀取 B2 bucket/key capability evidence。Adapter 採 immutable content-addressed checkpoint objects + bucketInfo current pointer；pointer 以 bucket revision + `ifRevisionIs` CAS。403 storage/transaction cap、409 revision conflict、public bucket、lifecycle deletion、Cloud Replication、過度權限 key、checksum mismatch 都 fail closed；單 checkpoint 額外限制 250 MB。
+
+B2 權限拆成兩把 key：data key 必須單一 bucket + `sports-edge-ai/` prefix scoped，只含 listBuckets/readFiles/writeFiles/readBucketReplications 等最小能力；pointer key 因 Backblaze 不允許 bucket-restricted key 使用 writeBuckets，只允許 account-wide `listBuckets + writeBuckets`，不得混入 file/delete/key-management capabilities。Phase 16A targeted B2/CLI tests=20 passed；full bootstrap=130 Python tests / Ruff passed / mypy 69 source files / Frontend 2 tests / npm audit 0 vulnerabilities。
+
 ## 外部 Gate / 非程式缺口
 
 1. Historical paid entitlement：live probe 已回 HTTP 401；目前帳號不可使用 historical endpoints。
@@ -204,5 +214,5 @@ Supabase Free 只保留 secondary/control-plane 候選，因 1 GB storage 與低
 3. Live provider mapping：30 個正式 NBA franchise 已 review approved，2 個非正式 provider participants rejected；目前 mapping completion=1.0。
 4. Git：repository-local identity 已設定為 `fishke22 <fishke22@gmail.com>`；首次 commit 已完成。
 5. Public GitHub：`fishke22/SPORTS_EDGE_AI` 已公開；後續變更仍需通過 publication audit 與 CI。
-6. Zero-cost cloud live runtime：Phase 15 只讀調查後，Backblaze B2 為唯一 CONDITIONAL 候選；仍缺真實免費帳號的 no-payment/data-cap/private/scoped-key 與 provider-specific round-trip evidence，所以 remote live 正確狀態仍為 LIVE_REMOTE_BLOCKED。Phase 16 需要使用者建立免費 B2 帳號並完成必要安全設定後才能繼續。
+6. Zero-cost cloud live runtime：Phase 16A 已確認真實帳號的 $0 storage/download/transaction caps，並完成 B2 Native API fail-closed adapter contract；仍缺 no-payment-method 直接證據、private bucket、兩把最小權限 key 與 provider-specific round-trip，所以 remote live 正確狀態仍為 LIVE_REMOTE_BLOCKED。Phase 16B 需要使用者先完成 billing safety 與 bucket/key 設定，再執行 live preflight/round-trip。
 7. 台灣運彩 adapter / 真實 payout-tax rule：需合法官方資料與版本化規則來源後另行施工；目前不猜值。

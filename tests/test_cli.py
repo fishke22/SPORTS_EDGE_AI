@@ -59,6 +59,42 @@ def test_checkpoint_backend_smoke_cli_is_reference_only() -> None:
     assert payload["generation"] == payload["checkpoint_sha256"]
 
 
+def test_b2_preflight_status_cli_is_offline_and_fail_closed(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    root = _portable_root(tmp_path)
+    monkeypatch.setenv("SPORTS_EDGE_ROOT", str(root))
+    monkeypatch.setenv("SPORTS_EDGE_BACKBLAZE_B2_ZERO_DOLLAR_STORAGE_CAP_CONFIRMED", "true")
+    monkeypatch.setenv("SPORTS_EDGE_BACKBLAZE_B2_ZERO_DOLLAR_DOWNLOAD_CAP_CONFIRMED", "true")
+    monkeypatch.setenv("SPORTS_EDGE_BACKBLAZE_B2_TRANSACTION_CAPS_CONFIRMED", "true")
+    monkeypatch.setenv("SPORTS_EDGE_BACKBLAZE_B2_NO_PAYMENT_METHOD_CONFIRMED", "false")
+    for name in (
+        "SPORTS_EDGE_BACKBLAZE_B2_KEY_ID",
+        "SPORTS_EDGE_BACKBLAZE_B2_APPLICATION_KEY",
+        "SPORTS_EDGE_BACKBLAZE_B2_POINTER_KEY_ID",
+        "SPORTS_EDGE_BACKBLAZE_B2_POINTER_APPLICATION_KEY",
+        "SPORTS_EDGE_BACKBLAZE_B2_BUCKET_ID",
+        "SPORTS_EDGE_BACKBLAZE_B2_BUCKET_NAME",
+    ):
+        monkeypatch.delenv(name, raising=False)
+
+    result = RUNNER.invoke(app, ["b2-preflight-status"])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.output)
+    assert payload["status"] == "LIVE_REMOTE_BLOCKED"
+    assert payload["storage_operations_allowed"] is False
+    assert payload["remote_live_ready"] is False
+    assert payload["manual_evidence"]["zero_dollar_storage_cap_confirmed"] is True
+    assert payload["manual_evidence"]["zero_dollar_download_cap_confirmed"] is True
+    assert payload["manual_evidence"]["transaction_caps_confirmed"] is True
+    assert payload["manual_evidence"]["no_payment_method_confirmed"] is False
+    assert payload["provider_evidence"]["credentials_configured"] is False
+    assert "NO_PAYMENT_METHOD_NOT_CONFIRMED" in payload["blockers"]
+    assert "B2_CREDENTIALS_NOT_CONFIGURED" in payload["blockers"]
+
+
 def test_zero_cost_status_and_operational_checkpoint_cli(
     tmp_path: Path,
     monkeypatch,

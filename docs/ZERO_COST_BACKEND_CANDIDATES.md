@@ -42,7 +42,7 @@
 1. Immutable checkpoint object 用 B2 file version/content hash。
 2. Current pointer 放 bucketInfo。
 3. 以 bucket revision + `ifRevisionIs` 做 CAS。
-4. Application key 僅授權單一 private bucket 的必要 read/writeBuckets/read/writeFiles 能力。
+4. 拆成兩把 key：data key 限定單一 private bucket + `sports-edge-ai/` prefix，只給 listBuckets/readFiles/writeFiles/readBucketReplications；pointer key 因 Backblaze 不允許 bucket-restricted key 使用 writeBuckets，改成 account-wide 但只給 listBuckets+writeBuckets，且不得有 file/delete/key-management capabilities。
 5. 程式另做 10 GB / transaction free-quota preflight，接近門檻就停止 publish。
 6. 任一 403 cap、409 conflict、quota、auth 或 checksum error 都 fail closed。
 7. 不設定 lifecycle 自動刪除 point-in-time checkpoint；若容量接近免費上限，停止 collection 並要求人工搬移/封存，不刪歷史換空間。
@@ -55,6 +55,14 @@
 - https://www.backblaze.com/apidocs/b2-create-key
 - https://www.backblaze.com/docs/cloud-storage-data-caps-and-alerts
 - https://www.backblaze.com/docs/cloud-storage-create-and-manage-caps-and-alerts
+
+## Phase 16A real-account evidence
+
+使用者實際 Backblaze Caps & Alerts 畫面已確認：daily storage cap 顯示 `$0.00 (10 GB)`、daily download cap 顯示 `$0.00 (1 GB)`，Class B / C transaction 顯示每日最多 2,500。這三項 evidence 只寫入本機 ignored `.env`，public repo 不保存帳號、Email 或截圖。
+
+目前仍缺「帳號沒有付款方式」的直接畫面證據，因此 `NO_PAYMENT_METHOD_NOT_CONFIRMED` 與 `AUTOMATIC_BILLING_POSSIBLE` 仍是有效 blocker。Private bucket、data/pointer keys 與 provider round-trip 也尚未建立，因此 `LIVE_REMOTE_BLOCKED` 不變。
+
+Phase 16A 已實作 `backblaze-b2-native-v1` adapter 與 fail-closed preflight。Native API 使用 immutable content-addressed checkpoint object + bucketInfo current pointer；pointer 更新以 bucket `revision` + `ifRevisionIs` CAS。403 `storage_cap_exceeded` / `transaction_cap_exceeded` 轉成 quota failure，409 conflict 轉成 CAS failure；錯誤訊息不輸出 key/token。單檔 checkpoint 目前額外限制 250 MB，遠低於帳號畫面 1 GB/day download cap，超過即本地 fail closed。
 
 ## Supabase Free — CONDITIONAL SECONDARY / NOT PRIMARY
 

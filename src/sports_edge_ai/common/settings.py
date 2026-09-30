@@ -25,6 +25,17 @@ class Settings(BaseSettings):
     the_odds_api_key: SecretStr | None = None
     the_odds_api_monthly_credit_budget: int = 450
     the_odds_api_region: str = "us"
+    backblaze_b2_key_id: SecretStr | None = None
+    backblaze_b2_application_key: SecretStr | None = None
+    backblaze_b2_pointer_key_id: SecretStr | None = None
+    backblaze_b2_pointer_application_key: SecretStr | None = None
+    backblaze_b2_bucket_id: str | None = None
+    backblaze_b2_bucket_name: str | None = None
+    backblaze_b2_name_prefix: str = "sports-edge-ai/"
+    backblaze_b2_no_payment_method_confirmed: bool = False
+    backblaze_b2_zero_dollar_storage_cap_confirmed: bool = False
+    backblaze_b2_zero_dollar_download_cap_confirmed: bool = False
+    backblaze_b2_transaction_caps_confirmed: bool = False
     forward_current_min_interval_minutes: int = 180
     forward_scores_min_interval_minutes: int = 720
     forward_scores_days_from: int = 3

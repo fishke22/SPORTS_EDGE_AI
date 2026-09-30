@@ -13,6 +13,7 @@
 - Added `zero-cost-checkpoint-backend-v1`, a provider-neutral checkpoint storage protocol/capability evaluator plus a local reference adapter with content-addressed versions, atomic pointer updates, compare-and-swap generation checks, exclusive writer locking, quota fail-closed behavior, verified export, and full restore round-trip smoke.
 - Added stale-generation, concurrent-writer, quota-preserves-history, capability-gate, round-trip, CLI, and CI regressions; the local reference adapter is explicitly never remote-live eligible.
 - Added Phase 15 zero-cost backend candidate assessment. Backblaze B2 is documented as conditional-only pending real-account no-payment/data-cap/private/scoped-key round-trip evidence; Supabase remains secondary-only, while R2, Google Drive, and Dropbox Basic are rejected for the hard zero-cost state-authority role under current public terms.
+- Added Phase 16A Backblaze B2 Native API safety preflight and checkpoint adapter contract: offline-by-default status, two-key least-privilege model, private/lifecycle/replication checks, immutable upload + bucket-revision CAS pointer, 403 quota and 409 conflict fail-closed handling, checksum verification, and conservative 250 MB checkpoint limit. Real account cap evidence confirms $0 storage/download and transaction caps, while no-payment-method and live round-trip gates remain unresolved.
 
 ## [0.1.1] - 2026-09-29
 

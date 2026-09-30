@@ -6,6 +6,9 @@ from pathlib import Path
 
 import typer
 
+from sports_edge_ai.application.backblaze_b2_status import (
+    get_backblaze_b2_preflight_status,
+)
 from sports_edge_ai.application.checkpoint_backend_smoke import (
     run_checkpoint_backend_contract_smoke,
 )
@@ -664,6 +667,71 @@ def checkpoint_backend_smoke() -> None:
                 "checkpoint_sha256": result.checkpoint_sha256,
                 "generation": result.generation,
                 "restored_marker": result.restored_marker,
+            },
+            ensure_ascii=False,
+        )
+    )
+
+
+@app.command("b2-preflight-status")
+def b2_preflight_status(
+    live: bool = typer.Option(
+        False,
+        "--live",
+        help="Contact Backblaze using locally configured credentials; secrets are never printed.",
+    ),
+) -> None:
+    assessment = get_backblaze_b2_preflight_status(live=live)
+    typer.echo(
+        json.dumps(
+            {
+                "policy_version": assessment.policy_version,
+                "status": assessment.status,
+                "storage_operations_allowed": assessment.storage_operations_allowed,
+                "remote_live_ready": assessment.remote_live_ready,
+                "blockers": list(assessment.blockers),
+                "manual_evidence": {
+                    "no_payment_method_confirmed": (
+                        assessment.manual_evidence.no_payment_method_confirmed
+                    ),
+                    "zero_dollar_storage_cap_confirmed": (
+                        assessment.manual_evidence.zero_dollar_storage_cap_confirmed
+                    ),
+                    "zero_dollar_download_cap_confirmed": (
+                        assessment.manual_evidence.zero_dollar_download_cap_confirmed
+                    ),
+                    "transaction_caps_confirmed": (
+                        assessment.manual_evidence.transaction_caps_confirmed
+                    ),
+                },
+                "provider_evidence": {
+                    "credentials_configured": (
+                        assessment.provider_evidence.credentials_configured
+                    ),
+                    "bucket_configured": assessment.provider_evidence.bucket_configured,
+                    "bucket_private": assessment.provider_evidence.bucket_private,
+                    "lifecycle_rules_absent": (
+                        assessment.provider_evidence.lifecycle_rules_absent
+                    ),
+                    "cloud_replication_disabled": (
+                        assessment.provider_evidence.cloud_replication_disabled
+                    ),
+                    "data_key_bucket_scoped": (
+                        assessment.provider_evidence.data_key_bucket_scoped
+                    ),
+                    "data_key_prefix_scoped": (
+                        assessment.provider_evidence.data_key_prefix_scoped
+                    ),
+                    "data_key_capabilities_minimal": (
+                        assessment.provider_evidence.data_key_capabilities_minimal
+                    ),
+                    "pointer_key_capabilities_minimal": (
+                        assessment.provider_evidence.pointer_key_capabilities_minimal
+                    ),
+                    "provider_round_trip_verified": (
+                        assessment.provider_evidence.provider_round_trip_verified
+                    ),
+                },
             },
             ensure_ascii=False,
         )

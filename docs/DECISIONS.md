@@ -346,3 +346,13 @@ Phase 14 不先選外部服務，而先定義 `zero-cost-checkpoint-backend-v1`�
 Supabase Free 只留 secondary/control-plane 可能性，因 1 GB storage 與 auto-pause；Cloudflare R2 因 subscription checkout/billable overage、Google Drive 因已公告 2026 年稍後超額計費、Dropbox Basic 因 over-quota 可能刪檔，不作 authoritative state backend。GitHub Actions public standard runners可作 ephemeral compute，仍禁止成為 state authority。
 
 Phase 16 必須由使用者先建立免費 B2 account 並完成安全設定，再以 scoped key 做 provider-specific round-trip；未有 credential/evidence 前只維持文件候選，不先寫假 adapter。
+
+## ADR-0047 — B2 Phase 16A 使用兩把最小權限 key；真實 cap evidence 不等於 remote-live approval
+
+日期：2026-09-30
+
+使用者實際 Caps & Alerts 畫面已證明 storage `$0.00 / 10 GB`、download `$0.00 / 1 GB`、B/C transaction 2,500/day，因此三個 cap evidence 可在 ignored local settings 標 true；畫面未證明 billing method absence，所以 no-payment evidence 仍 false，禁止推論。
+
+Native API CAS 採 bucketInfo + bucket revision / `ifRevisionIs`。官方 capability contract 顯示 `writeBuckets` 不允許 bucket-restricted key，因此單一 bucket-scoped key 無法同時滿足 file access 與 bucket CAS。架構改成 data key（bucket+prefix scoped，最小 read/writeFiles + replication-read）以及 pointer key（account-wide 但只 listBuckets+writeBuckets）兩把 secret；pointer key 不具 delete、file、key-management capability。這個限制必須在 preflight 中顯式驗證，不能用 master key 取代。
+
+Phase 16A adapter 允許在 round-trip gate 尚未通過前做受控 publish/fetch 測試，但 production `remote_live_ready` 必須等 provider round-trip evidence 為 true；403 cap、409 conflict、public bucket、replication、lifecycle deletion、過度權限或 checksum mismatch 任一發生皆 fail closed。

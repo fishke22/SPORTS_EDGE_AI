@@ -144,7 +144,22 @@ B2 的技術方向符合 Phase 14 contract：private bucket、版本、scoped ke
 
 但官方 data-cap 文件明確說沒有 caps 時 usage 可無上限且可能累積費用，因此本專案額外要求：帳號不放付款方式、人工設定 hard data caps、程式做免費額度 preflight，三者缺一不可。公開文件尚未證明 data-cap UI 能可靠設為精確 $0，所以 Phase 15 不解除 `LIVE_REMOTE_BLOCKED`。
 
-## 8. 建議的演進順序
+## 8. Phase 16A — Backblaze B2 safety preflight / adapter contract
+
+使用者實際帳號畫面已確認 B2 storage `$0.00 / 10 GB`、download `$0.00 / 1 GB` 與 B/C transaction 2,500/day caps。本機 ignored `.env` 只記錄這三個 evidence flags；未驗證付款方式狀態仍為 false。
+
+新增 `backblaze-b2-native-v1`：
+
+- 預設 `sports-edge b2-preflight-status` 不送網路 request；`--live` 才讀本機 credentials 呼叫 B2。
+- data key 必須 bucket + `sports-edge-ai/` prefix scoped，並維持最小 file/read-replication capabilities。
+- CAS pointer 需要 `b2_update_bucket` 的 writeBuckets。Backblaze 官方限制 writeBuckets 不可用於 bucket-restricted key，因此另設 pointer key，只允許 listBuckets + writeBuckets；不得有 delete/file/key-management capabilities。
+- bucket 必須 `allPrivate`、lifecycle rules 空、Cloud Replication disabled。
+- immutable checkpoint object 先 upload，再以 bucket revision + `ifRevisionIs` 更新 bucketInfo current pointer；409 conflict 不改 current。
+- 403 storage/transaction cap 直接 fail closed；下載同時驗 B2 SHA1、pointer SHA-256 與 operational-checkpoint manifest。
+- v1 單 checkpoint hard limit 250 MB；超過不嘗試 upload，避免靠近免費 download/storage 邊界。
+- Provider round-trip 未實證前，remote live gate 仍維持 blocked。
+
+## 9. 建議的演進順序
 
 目前先維持：
 

@@ -332,3 +332,23 @@ uv run sports-edge checkpoint-backend-smoke
 Reference adapter 用 content-addressed versioned objects + atomic current pointer。Publish 要求 caller 提供 `expected_generation`；generation 已變時 CAS fail closed，不覆蓋 current。`.publish.lock` 已存在時拒絕第二 writer。設定 free quota 後，若新 object 會超額，必須在 pointer/object mutation 前拒絕且保留既有版本。
 
 此 smoke 的目的，是讓未來任何免費 object-store adapter 使用同一組契約與 regression；它不代表本機檔案系統可以取代真正 remote durable storage。
+
+## 19. Backblaze B2 zero-cost preflight
+
+預設只讀本機 evidence，不送網路：
+
+~~~powershell
+uv run sports-edge b2-preflight-status
+~~~
+
+只有在 B2 bucket/key 已安全配置後才做 live inspection：
+
+~~~powershell
+uv run sports-edge b2-preflight-status --live
+~~~
+
+輸出只包含 boolean evidence 與 blocker codes，不輸出 bucket key、application key、authorization token。`--live` 會驗 private bucket、lifecycle rules、Cloud Replication、data key scope/capabilities 與 pointer key capabilities。
+
+Data key 必須限定目標 bucket + `sports-edge-ai/` prefix；pointer key 必須是另一把只具有 `listBuckets` + `writeBuckets` 的 capability-scoped key。原因是 Backblaze 不允許 bucket-restricted key 使用 `writeBuckets`。任何 key 多出 delete/file/key-management 等非必要能力都視為 preflight blocker。
+
+目前帳號 evidence 已確認 `$0` storage/download caps 與 B/C transaction caps；no-payment-method 尚未確認，所以正常輸出仍為 `LIVE_REMOTE_BLOCKED`。不要為了讓狀態變 READY 而手動把未證實 flag 改成 true。
