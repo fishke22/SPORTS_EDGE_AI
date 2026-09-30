@@ -136,7 +136,15 @@ Reference adapter 即使其他能力全部通過，因 `remote_access=false` 與
 
 未來外部免費 backend adapter 必須實作相同 protocol 並通過至少以下 regression：stale generation 被拒絕且 current 不變、第二 writer 被拒絕、quota 不足在 mutation 前失敗且不刪舊 objects、下載檔 hash/size/checkpoint verify 通過、clean runtime restore 後 state 一致。只有 capabilities evaluator 沒有 blockers 且真實 round-trip 通過，才有資格進入下一層 remote scheduler integration。
 
-## 7. 建議的演進順序
+## 7. Phase 15 候選結論
+
+完整矩陣見 `docs/ZERO_COST_BACKEND_CANDIDATES.md`。目前只有 Backblaze B2 為 CONDITIONAL candidate；不是 APPROVED backend。
+
+B2 的技術方向符合 Phase 14 contract：private bucket、版本、scoped key、bucket revision + `ifRevisionIs` 可支援 current-pointer CAS，且 non-paying transaction cap 可 fail closed。免費層目前為前 10 GB，官方也說可不提供 billing method 開始。
+
+但官方 data-cap 文件明確說沒有 caps 時 usage 可無上限且可能累積費用，因此本專案額外要求：帳號不放付款方式、人工設定 hard data caps、程式做免費額度 preflight，三者缺一不可。公開文件尚未證明 data-cap UI 能可靠設為精確 $0，所以 Phase 15 不解除 `LIVE_REMOTE_BLOCKED`。
+
+## 8. 建議的演進順序
 
 目前先維持：
 

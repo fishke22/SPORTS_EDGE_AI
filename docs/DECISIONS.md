@@ -336,3 +336,13 @@ Phase 14 不先選外部服務，而先定義 `zero-cost-checkpoint-backend-v1`�
 `local-filesystem-reference-v1` 只作 executable specification：content-addressed objects、atomic pointer、exclusive writer lock、expected-generation CAS、quota preflight、verified fetch。它固定 `remote_access=false`、`reference_only=true`，所以即使 contract smoke 完成也永遠不是 remote-live eligible。
 
 未來任何免費 provider adapter 必須先通過同一批 round-trip、stale-CAS、second-writer、quota-preserves-history tests，再以真實服務 capability/evidence 接受 evaluator。沒有 provider-specific round-trip evidence 前，`LIVE_REMOTE_BLOCKED` 不變。
+
+## ADR-0046 — Phase 15 僅 Backblaze B2 進入 conditional preflight；未驗證帳號前不實作 remote adapter
+
+日期：2026-09-30
+
+以官方公開文件比對零付費 hard policy 後，Backblaze B2 是唯一值得進下一輪實測的候選：10 GB free、可不提供 billing method 開始、private bucket、版本預設保留、bucket revision + `ifRevisionIs` CAS、non-paying account transaction cap，以及 scoped application keys 都符合架構方向。但官方同時說明未設定 data caps 時可累積費用，因此 B2 只能標 CONDITIONAL；未在真實帳號證明 no-payment-method + hard data caps 前，不得把 `automatic_billing_possible` 設為 false。
+
+Supabase Free 只留 secondary/control-plane 可能性，因 1 GB storage 與 auto-pause；Cloudflare R2 因 subscription checkout/billable overage、Google Drive 因已公告 2026 年稍後超額計費、Dropbox Basic 因 over-quota 可能刪檔，不作 authoritative state backend。GitHub Actions public standard runners可作 ephemeral compute，仍禁止成為 state authority。
+
+Phase 16 必須由使用者先建立免費 B2 account 並完成安全設定，再以 scoped key 做 provider-specific round-trip；未有 credential/evidence 前只維持文件候選，不先寫假 adapter。

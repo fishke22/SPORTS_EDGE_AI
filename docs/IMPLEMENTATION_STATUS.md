@@ -25,7 +25,7 @@ provider production_allowed=false，模型不得宣稱 validated edge。
 - scripts/verify_portability.ps1：passed。
 - Phase 10 live smoke：research-readiness=NOT_READY，0 usable / 180 first evaluation / 360 validation sample capacity；model_registry/backtest_runs 維持 0。
 - API/MCP contract tests確認 read-only structured interface。
-- publication audit：首次 commit 後重新掃描 Git history，0 blockers / 0 warnings；174 tracked files。
+- publication audit：首次 commit 後重新掃描 Git history，0 blockers / 0 warnings；175 tracked files。
 - `sports-edge doctor`：DEGRADED / ready_for_research=true；credential 已配置，僅 provider production gate 為 WARN。
 - deterministic release bundle：builder / manifest / hash / raw-exclusion smoke 已通過；runtime ZIP 不進 Git，依 tracked source 可重建。
 - Public GitHub：`https://github.com/fishke22/SPORTS_EDGE_AI`；visibility=public，default branch=`main`。
@@ -189,6 +189,14 @@ CLI 新增 `zero-cost-status`、`build-operational-checkpoint`、`verify-operati
 
 Regression 已覆蓋 publish/fetch/verify/restore round-trip、stale generation 不覆蓋 current、第二 writer lock reject、quota 超限在 mutation 前 fail 且保留舊 objects、完整 capability evaluator、CLI smoke。GitHub Actions matrix 也新增 `checkpoint-backend-smoke`。Phase 14 full bootstrap：121 Python tests、Ruff、mypy 66 source files、Frontend 2 tests/build/npm audit 全綠。
 
+## Phase 15 — Zero-Cost Backend Candidate Assessment
+
+狀態：完成只讀公開文件調查；未建立任何外部帳號/資源，runtime code 未修改。
+
+候選矩陣記錄於 `docs/ZERO_COST_BACKEND_CANDIDATES.md`。目前只有 Backblaze B2 進入 CONDITIONAL：官方文件顯示前 10 GB 免費、可不提供 billing method 開始、private bucket、版本預設保留、bucket revision + `ifRevisionIs` 可做 CAS，且 non-paying transaction cap 超限回 403；但官方也明確警告未設定 data caps 時可能累積費用，因此在真實帳號確認「無付款方式 + hard data caps + private bucket + scoped key」前不能 APPROVE，也不能解除 `LIVE_REMOTE_BLOCKED`。
+
+Supabase Free 只保留 secondary/control-plane 候選，因 1 GB storage 與低活動 auto-pause；Cloudflare R2 因 subscription checkout 與 billable overage 淘汰；Google Drive 因 2026 年稍後預定導入超額計費淘汰；Dropbox Basic 因 over-quota 情況可能刪除使用者檔案，不符合 evidence preservation，淘汰。GitHub Actions standard runners 在 public repo 仍可作免費 ephemeral compute，但不是 state authority。
+
 ## 外部 Gate / 非程式缺口
 
 1. Historical paid entitlement：live probe 已回 HTTP 401；目前帳號不可使用 historical endpoints。
@@ -196,5 +204,5 @@ Regression 已覆蓋 publish/fetch/verify/restore round-trip、stale generation 
 3. Live provider mapping：30 個正式 NBA franchise 已 review approved，2 個非正式 provider participants rejected；目前 mapping completion=1.0。
 4. Git：repository-local identity 已設定為 `fishke22 <fishke22@gmail.com>`；首次 commit 已完成。
 5. Public GitHub：`fishke22/SPORTS_EDGE_AI` 已公開；後續變更仍需通過 publication audit 與 CI。
-6. Zero-cost cloud live runtime：使用者明確要求永不付費。Phase 14 已把 backend requirements 變成 executable protocol/capability gate，local reference adapter round-trip 已通過；但尚無任何真實外部免費 backend 通過 provider-specific round-trip，因此 remote live 正確狀態仍為 LIVE_REMOTE_BLOCKED。下一步只能評估候選免費服務，不能直接解除 gate。
+6. Zero-cost cloud live runtime：Phase 15 只讀調查後，Backblaze B2 為唯一 CONDITIONAL 候選；仍缺真實免費帳號的 no-payment/data-cap/private/scoped-key 與 provider-specific round-trip evidence，所以 remote live 正確狀態仍為 LIVE_REMOTE_BLOCKED。Phase 16 需要使用者建立免費 B2 帳號並完成必要安全設定後才能繼續。
 7. 台灣運彩 adapter / 真實 payout-tax rule：需合法官方資料與版本化規則來源後另行施工；目前不猜值。
